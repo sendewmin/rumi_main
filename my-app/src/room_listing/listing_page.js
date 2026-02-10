@@ -11,6 +11,17 @@ import RoomSlider from '../components/room_slider';
 // Import the data from roomdata.json
 import roomobject from '../components/roomdata.json';
 
+// Import Typograph from Material UI
+import Typography from "@mui/material/Typography";
+
+// Import Grid layout from Material UI
+import Grid from '@mui/material/Grid'
+
+// Import lucide-react icons
+import {  MapPin, CalendarDays, MessageCircle, CircleDollarSign, ChevronRight, Check , BookText, Info, CircleStar} from 'lucide-react';
+import { User } from 'lucide-react';
+
+
 function listing_page(){
     return(
 
@@ -56,11 +67,51 @@ function listing_page(){
                             height: 300,
                         }}>
                             <CardContent sx={{p:0, '&last-child':{pb:0}, height:'100%'}}>
-                                <RoomSlider rooms={roomobject}/>
+                                {/* <RoomSlider rooms={roomobject}/> */}
                             </CardContent>
 
                         </Card>
                     </Box>
+
+
+                    {/* Room title card */}
+                    <Card varient="outlined"
+                        sx={{
+                            bgcolor:'#ffff',
+                            borderRadius:1.5,
+                            border:'1px solid #CBD5E1',
+                            boxShadow:'0 1px 2px rgba(2, 6, 23, 0.08)'
+                        }}
+                    >
+                        <CardContent sx={{p:1,"&:last-child":{pb:1}}}>
+                            <Grid container spacing={0.5}>
+
+                                <Grid item size={{xs:12,md:12,lg:12}}>
+                                    <Typography
+                                        varient="h6"
+                                        sx={{fontWeight:550}}
+                                        fontSize={18}
+                                        color='#1E293B' 
+                                    >
+                                        Private Room in Modern Shared Apartment
+                                    </Typography>
+                                </Grid>
+
+                                <Grid container direction='row' spacing={3} alignItems={'center'}>
+
+                                    <Grid item>
+                                        <Typography varient='caption' sx={{display:'flex',gap:0.2}}> <User size={15}/> 23 Reviews</Typography>
+                                    </Grid>
+
+                                    <Grid item>
+                                        <Typography varient='caption' sx={{display:'flex',gap:0.2}}>Colombo, City Center</Typography>
+                                    </Grid>
+
+                                </Grid>
+
+                            </Grid>
+                        </CardContent>
+                    </Card>
 
                     
                 
