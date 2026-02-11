@@ -17,6 +17,12 @@ import Typography from "@mui/material/Typography";
 // Import Grid layout from Material UI
 import Grid from '@mui/material/Grid'
 
+// Import link from Material UI
+import Link from "@mui/material/Link";
+
+// Import Button from Material UI
+import Button from "@mui/material/Button";
+
 // Import lucide-react icons
 import {  MapPin, CalendarDays, MessageCircle, CircleDollarSign, ChevronRight, Check , BookText, Info, CircleStar} from 'lucide-react';
 import { User } from 'lucide-react';
@@ -44,7 +50,7 @@ function listing_page(){
                     pt:1, // Padding in all direction are given
                     pl:1,
                     pr:1,
-                    pb:1,
+                    pb:0,
                     width:'100%',
                     gap:1
                 }}>
@@ -86,6 +92,7 @@ function listing_page(){
                         <CardContent sx={{p:1,"&:last-child":{pb:1}}}>
                             <Grid container spacing={0.5}>
 
+                                {/* Room title */}
                                 <Grid item size={{xs:12,md:12,lg:12}}>
                                     <Typography
                                         varient="h6"
@@ -97,6 +104,7 @@ function listing_page(){
                                     </Typography>
                                 </Grid>
 
+                                {/* Review and Location of the Room */}
                                 <Grid container direction='row' spacing={3} alignItems={'center'}>
 
                                     <Grid item>
@@ -104,7 +112,7 @@ function listing_page(){
                                     </Grid>
 
                                     <Grid item>
-                                        <Typography varient='caption' sx={{display:'flex',gap:0.2}}>Colombo, City Center</Typography>
+                                        <Typography varient='caption' sx={{display:'flex',gap:0.2}}> <MapPin size={15}/>Colombo, City Center</Typography>
                                     </Grid>
 
                                 </Grid>
@@ -120,7 +128,72 @@ function listing_page(){
 
 
                 {/* Right side Box */}
-                <Box>
+                <Box sx={{
+                    display:'flex',
+                    flexDirection:'column',  // The items like Card and grid will be in a column flow
+                    flex:1,
+                    pt:1,  // The items inside the box will be given padding
+                    pl:1,
+                    pr:1,
+                    pb:1,
+                    border:'2px solid black'
+                }}>
+
+                    <Card
+                        sx={{
+                            bgcolor:'#FFF',
+                            borderRadius:1.5,
+                            border:'1px solid #CBD5E1',
+                            boxShadow: '0 1px 2px rgba(2, 6, 23, 0.08)'
+                        }}
+                    >
+
+                        <CardContent sx={{p:1,'&:last-child':{pb:1}}}>
+                            {/* This is the Parent container for the room pricing and Schedule and apply now */}
+                            <Grid container direction={'row'} justifyContent={'space-between'} spacing={1}>
+
+                                <Grid container direction={'column'}>
+                                    <Grid item>
+                                        <Typography>$850/month</Typography>
+                                    </Grid>
+                                    <Grid container>
+                                        <Grid item>
+                                            <Typography>All utilities included</Typography>
+                                        </Grid>
+                                        <Grid item>
+                                            <Typography>Security deposit: $850</Typography>
+                                        </Grid>
+                                    </Grid>
+                                    <Grid item>
+                                        <Link>View full lease term <ChevronRight size={13}/></Link>
+                                    </Grid>
+                                </Grid>
+
+                                <Grid container>
+                                    <Grid container spacing={1} sx={{display:'flex',alignItems:'center',justifyContent:'end'}}>
+                                        <Grid item>
+                                            <Typography>Available from</Typography>
+                                        </Grid>
+
+                                        <Grid item>
+                                            <Typography> <CalendarDays size={15}/> Jan 15, 2025 </Typography>
+                                        </Grid>
+                                    </Grid>
+
+                                    <Grid container>
+                                        <Grid item>
+                                            <Button>Schedule Visit</Button>
+                                        </Grid>
+
+                                        <Grid item>
+                                            <Button>Apply Now</Button>
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
+
+                            </Grid>
+                        </CardContent>
+                    </Card>
 
                 </Box>
 
