@@ -1,3 +1,6 @@
+// sx prop is used to override the default styling from the Material UI components.
+
+
 // Import of Box Material UI
 import Box from "@mui/material/Box";
 
@@ -111,11 +114,11 @@ function listing_page(){
                                 <Grid container direction='row' spacing={3} alignItems={'center'}>
 
                                     <Grid item>
-                                        <Typography varient='caption' sx={{display:'flex',gap:0.2}}> <User size={15}/> 23 Reviews</Typography>
+                                        <Typography variant='caption' sx={{display:'flex',gap:0.2}}> <User size={15}/> 23 Reviews </Typography>
                                     </Grid>
 
                                     <Grid item>
-                                        <Typography varient='caption' sx={{display:'flex',gap:0.2}}> <MapPin size={15}/>Colombo, City Center</Typography>
+                                        <Typography variant='caption' sx={{display:'flex',gap:0.2}}> <MapPin size={15}/>Colombo, City Center</Typography>
                                     </Grid>
 
                                 </Grid>
@@ -138,9 +141,10 @@ function listing_page(){
                     pt:1,  // The items inside the box will be given padding
                     pl:1,
                     pr:1,
-                    pb:1,
+                    pb:0,
                     border:'2px solid black',
-                    backgroundColor: 'yellow'
+                    backgroundColor: 'yellow',
+                    gap:1
                 }}>
 
                     <Card
@@ -210,7 +214,7 @@ function listing_page(){
                         <CardContent sx={{p:1,'&:last-child': { pb: 1 }}}>
                             <Grid container direction={'column'} gap={0.5}>
                                 <Grid item>
-                                    <Typography variant="p">Room Details and Rule</Typography>
+                                    <Typography variant="p">Room Details and Rules</Typography>
                                 </Grid>
 
                                 {/* Room Details Container */}
