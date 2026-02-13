@@ -388,6 +388,45 @@ function listing_page(){
                         </CardContent>
                     </Card>
 
+                    {/* Amenities card content */}
+                    <Card sx={{
+                        bgcolor: '#FFFFFF',
+                        borderRadius: 1.5,
+                        border: '1px solid #CBD5E1',
+                        boxShadow: '0 1px 2px rgba(2, 6, 23, 0.08)'
+                    }}>
+                        <CardContent sx={{p:1, '&:last-child': { pb: 1 } }}>
+                            <Grid container direction={'column'} gap={0.5}>
+                                {/* Amenities Title */}
+                                <Grid item>
+                                    <Typography variant="p">Amenities</Typography>
+                                </Grid>
+
+                                {/* All Amenities will be displayed */}
+                                <Grid container justifyContent={'space-between'}>
+
+                                    <Grid item>
+                                        <Typography fontSize={14} sx={{ display:'flex', alignItems:'center',gap:0.5}}> <CircleStar size={13}/> High-Speed WiFi</Typography>
+                                    </Grid>
+
+                                    <Grid item>
+                                        <Typography fontSize={14} sx={{ display:'flex', alignItems:'center',gap:0.5}}> <CircleStar size={13}/> Free Parking</Typography>
+                                    </Grid>
+
+                                    <Grid item>
+                                        <Typography fontSize={14} sx={{ display:'flex', alignItems:'center',gap:0.5}}> <CircleStar size={13}/> Air Conditioning</Typography>
+                                    </Grid>
+
+                                </Grid>
+                                {/* Link to view the Amenities */}
+                                <Grid item>
+                                    <Link sx={{fontSize: 13,fontWeight: 500,color: 'primary.main',textDecoration: 'none','&:hover': {textDecoration: 'underline'}, cursor:'pointer' ,display: 'flex',alignItems: 'end',gap: 0}}>View all Amenities <ChevronRight size={13}/></Link>
+                                </Grid>
+
+                            </Grid>
+                        </CardContent>
+                    </Card>
+
                 </Box>
 
 
