@@ -29,6 +29,7 @@ import Button from "@mui/material/Button";
 // Import lucide-react icons
 import {  MapPin, CalendarDays, MessageCircle, CircleDollarSign, ChevronRight, Check , BookText, Info, CircleStar} from 'lucide-react';
 import { User } from 'lucide-react';
+import Avatar from "@mui/material/Avatar";
 
 
 function listing_page(){
@@ -127,6 +128,80 @@ function listing_page(){
                         </CardContent>
                     </Card>
 
+                    {/* User review and tenant Review */}
+                    <Card variant='outlined'
+                    sx={{
+                        bgcolor:'#FFFF',
+                        borderRadius:1.5,
+                        border:'1px solid #CBD5E1',
+                        boxShadow: '0 1px 2px rgba(2, 6, 23, 0.08)'
+                    }}
+                    >
+
+                        <CardContent sx={{p:1,'&last-child':{pb:1}}}>
+
+                            <Grid container direction={'column'} spacing={0.5}>
+                                {/* Tenant Reviews title */}
+                                <Grid item>
+                                    <Typography variant= 'p' color='#1E293B'>Tenant Reviews</Typography>
+                                </Grid>
+
+                                {/* Number of user reviews */}
+                                <Grid container spacing={3}>
+
+                                    <Grid item sx={{display:'flex',alignItems:'center',gap:0.5}}>
+                                        <User size={15} />
+                                        <Typography variant='body2' sx={{ fontSize: 12 }}>
+                                            23 Reviews
+                                        </Typography>
+                                    </Grid>
+
+                                </Grid>
+
+                                {/* Avater, Name and Review from the customers */}
+                                <Grid container alignItems="flex-start" spacing={1.5}>
+                                    <Grid item>
+                                        <Avatar>NJ</Avatar>
+                                    </Grid>
+
+                                    <Grid item>
+                                        <Grid container direction={'column'}>
+                                            <Grid item>
+                                                <Typography>Nehthan Johnson</Typography>
+                                            </Grid>
+
+                                            <Grid item>
+                                                <Typography sx={{
+                                                    fontSize:'0.625rem',
+                                                    textTransform:'none',
+                                                    lineHeight:1,
+                                                    letterSpacing:0,
+                                                    p:0,
+                                                    mb:0.5
+                                                }}>
+                                                    Stayed 12 months 6 months ago</Typography>
+                                            </Grid>
+
+                                            {/* Review from the customers */}
+                                            <Grid item>
+                                                <Typography fontSize={12}>
+                                                    The empty space just means your content isn't tall enough to fill the viewport — it doesn't break anything. 
+                                                    Add more text here to test if the ellipsis appears after two lines.
+                                                </Typography>
+                                            </Grid>
+                                        </Grid>
+                                    </Grid>
+
+                                </Grid>
+
+                                <Grid item>
+                                    <Link sx={{fontSize: 13,fontWeight: 500,color: 'primary.main',textDecoration: 'none','&:hover': {textDecoration: 'underline'}, cursor:'pointer' ,display: 'flex',alignItems: 'end',gap: 0}}> Read all 23 reviews <ChevronRight size={13}/> </Link>
+                                </Grid>
+                            </Grid>
+
+                        </CardContent>
+
+                    </Card>
                     
                 
                 </Box>
