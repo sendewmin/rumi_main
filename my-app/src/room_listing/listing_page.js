@@ -138,7 +138,7 @@ function listing_page(){
                     }}
                     >
 
-                        <CardContent sx={{p:1,'&last-child':{pb:1}}}>
+                        <CardContent sx={{p:1 ,"&:last-child":{pb:1}}}>  {/*padding for the card content is given and last child bottom of the card content a padding will be given of 1  */}
 
                             <Grid container direction={'column'} spacing={0.5}>
                                 {/* Tenant Reviews title */}
@@ -225,7 +225,43 @@ function listing_page(){
                         </CardContent>
 
                     </Card>
-                    
+
+                    {/* Owner profile card and contact button */}
+                    <Card variant="outlined"
+                        sx={{
+                        bgcolor: '#FFFFFF',
+                        borderRadius: 1.5,
+                        border: '1px solid #CBD5E1',
+                        boxShadow: '0 1px 2px rgba(2, 6, 23, 0.08)',
+                    }}
+                    >
+                        <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
+                            {/* This container grid holds all the content in the card */}
+                            <Grid container direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
+
+                                <Grid container direction={'column'} spacing={1}>
+                                    <Grid container alignItems={'center'}>
+                                        <Grid item>
+                                            <Avatar>YG</Avatar>
+                                        </Grid>
+                                        
+                                        <Grid item>
+                                            <Typography>Yohan</Typography>
+                                        </Grid> 
+                                    </Grid>
+
+                                    <Grid item>
+                                        <Link sx={{fontSize: 13,fontWeight: 500,color: 'primary.main',textDecoration: 'none','&:hover': {textDecoration: 'underline'}, cursor:'pointer' ,display: 'flex',alignItems: 'end',gap: 0}}>View full profile <ChevronRight size={13}/></Link>
+                                    </Grid>
+                                </Grid>
+
+                                {/* Contact button where the tenant can contact the owner of the room */}
+                                <Grid item>
+                                    <Button type='submit' variant='contained'  size='large' sx={{boxShadow: '0 2px 8px rgba(8, 47, 105, 0.2)',border:'1px solid gray',alignItems: 'center', gap:0.5, fontSize:'14px', bgcolor:'#1E293B',color:'#FFFFFF', fontWeight:600, textTransform:'none', borderRadius:2, px:3,py:1.5, '&hover':{bgcolor: '#1E293B',boxShadow: '0 4px 12px rgba(8, 47, 105, 0.3)',}}}><MessageCircle size={13}/>Contact</Button>
+                                </Grid>
+                            </Grid>
+                        </CardContent>
+                    </Card>
                 
                 </Box>
 
