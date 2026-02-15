@@ -1,23 +1,21 @@
+import Hero from './Components/Hero';
+import CategoryCarousel from './Components/CategoryCarousel';
+import PlaceScroller from './Components/PlaceScroller';
+import PlaceScroller_1 from './Components/PlaceScroller_1';
+import Home_statement from './Components/Home_statement';
+
 import logo from './logo.svg';
 import './App.css';
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Hero />
+      <CategoryCarousel />
+      <Home_statement />
+      <PlaceScroller />
+      <PlaceScroller_1 />
+
     </div>
   );
 }
