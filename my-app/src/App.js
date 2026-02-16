@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useRef } from "react";
 import "./App.css";
 
@@ -163,5 +164,9 @@ function App() {
   );
 }
 
+=======
+import './App.css';
+
+>>>>>>> a457bacde7dd3aa0ea533392cc64127a47989569
 export default App;
 
