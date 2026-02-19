@@ -128,6 +128,15 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Source: https://mvnrepository.com/artifact/org.flywaydb/flyway-core -->
+<!--        Flyway dependency for database migration-->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>12.0.1</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- Firebase maven dependency -->
         <!-- Source: https://mvnrepository.com/artifact/com.google.firebase/firebase-admin -->
         <dependency>
