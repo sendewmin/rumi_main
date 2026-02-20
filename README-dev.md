@@ -37,15 +37,18 @@ Required variables:
 <br>DB_URL=jdbc:mysql://localhost:3306 _(your mysql port, usually - localhost:3306)_<br>
 DB_USERNAME=root _(usually root)_ <br>
 DB_PASSWORD= your database password
-- **Firebase Service Account** :
-<br>
-Set the environment variable:
-<br>
-FIREBASE_CREDENTIALS=C:\path\to\firebase-service.json
-<br>
-**Download this JSON file from your Firebase project:
-Firebase Console → Project Settings → Service Accounts → Generate new private key**
-<br>
+- **Firebase Service Account**
+
+  Set the environment variable:
+
+  FIREBASE_CREDENTIALS=C:\path\to\firebase-service.json
+
+**Download this JSON file from your Firebase project:**  
+Firebase Console → Project Settings → Service Accounts → Generate new private key
+
+> ⚠️ **Notes (Very Important)**  
+> `FIREBASE_CREDENTIALS` must point to the Firebase JSON file path on your machine.
+
 
 Notes (very important):
 <br>
