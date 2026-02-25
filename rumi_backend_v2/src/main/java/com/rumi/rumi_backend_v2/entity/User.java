@@ -1,5 +1,7 @@
 package com.rumi.rumi_backend_v2.entity;
 
+import com.rumi.rumi_backend_v2.enums.RoleName;
+import com.rumi.rumi_backend_v2.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

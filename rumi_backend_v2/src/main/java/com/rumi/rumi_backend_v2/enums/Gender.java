@@ -1,4 +1,4 @@
-package com.rumi.rumi_backend_v2.entity;
+package com.rumi.rumi_backend_v2.enums;
 
 public enum Gender {
     Male,
