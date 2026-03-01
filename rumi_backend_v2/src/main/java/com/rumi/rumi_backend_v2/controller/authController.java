@@ -1,7 +1,8 @@
 package com.rumi.rumi_backend_v2.controller;
 
-import com.rumi.rumi_backend_v2.entity.Role;
 import com.rumi.rumi_backend_v2.entity.User;
+import com.rumi.rumi_backend_v2.enums.RoleName;
+import com.rumi.rumi_backend_v2.enums.UserStatus;
 import com.rumi.rumi_backend_v2.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,13 +22,17 @@ public class AuthController {
     @PostMapping("/register")
     public RegisterResponse register(@RequestBody RegisterRequest request) {
         try {
-            User user = new User(
-                null,
-                request.name,
-                request.email,
-                request.password,
-                request.role
-            );
+            User user = User.builder()
+                .firebaseUid(request.firebaseUid)
+                .full_name(request.name)
+                .email(request.email)
+                .password(request.password)
+                .phone_number(request.phoneNumber)
+                .role(request.role)
+                .status(UserStatus.Active)
+                .profile_complete(false)
+                .phone_verified(false)
+                .build();
             User saved = userService.register(user);
             return RegisterResponse.success(saved);
         } catch (IllegalArgumentException ex) {
@@ -46,10 +51,12 @@ public class AuthController {
     }
 
     public static class RegisterRequest {
+        public String firebaseUid;
         public String name;
         public String email;
         public String password;
-        public Role role;
+        public String phoneNumber;
+        public RoleName role;
     }
 
     public static class LoginRequest {
@@ -58,15 +65,15 @@ public class AuthController {
     }
 
     public static class UserResponse {
-        public Long id;
+        public String id;
         public String name;
         public String email;
-        public Role role;
+        public RoleName role;
 
         static UserResponse from(User user) {
             UserResponse response = new UserResponse();
-            response.id = user.getId();
-            response.name = user.getName();
+            response.id = user.getFirebaseUid();
+            response.name = user.getFull_name();
             response.email = user.getEmail();
             response.role = user.getRole();
             return response;

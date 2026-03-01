@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 
 @Entity
-@Table(name="user")
+@Table(name="users")
 @Builder           // for easy object creation
 @AllArgsConstructor       // needed by @Builder
 @NoArgsConstructor  // required by JPA
@@ -28,6 +28,11 @@ public class User {
     @Getter
     @Column(name="email",nullable = false, unique = true)
     private String email;
+
+    @Getter
+    @Setter
+    @Column(name="password", nullable = false)
+    private String password;
 
     @Getter
     @Column(name="phone_number",nullable = false, unique = true)

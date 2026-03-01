@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS users (
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     phone VARCHAR(20) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
     role_id INT NOT NULL,
     status ENUM('active','inactive','banned') DEFAULT 'active',
     profile_completed BOOLEAN DEFAULT FALSE,
