@@ -9,8 +9,11 @@ import com.rumi.rumi_backend_v2.enums.RoomStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
-@Table(name="room")
+@Table(name="room_detail")
 @NoArgsConstructor   // Here a default constructor will be created for the RoomDetail class.
 @AllArgsConstructor  // Here a parameterised constructor will be created for the RoomDetail class.
 @Builder
@@ -46,6 +49,27 @@ public class RoomDetail {
     @Getter
     @Column(name="room_description",nullable=false)
     private String roomDescription;
+
+    @ManyToMany  //here it is resolving the many to many relationship
+    @JoinTable(name="room_amenity",
+        joinColumns=@JoinColumn(name="room_id"),  // here it will take the primary key from the RoomDetail entity
+        inverseJoinColumns=@JoinColumn(name="amenity_id")  //here it will take the primary key from the Amenity entity
+        )
+    private Set<Amenity> amenities = new HashSet<>();  // here the amenities will be stored as set
+
+    @ManyToMany
+    @JoinTable(name="room_rule",
+            joinColumns=@JoinColumn(name="room_id"),  // here it will take the primary key from the RoomDetail entity
+            inverseJoinColumns=@JoinColumn(name="rule_id")  // here it will take the primary key from the Rule entity
+    )
+    private Set<Rule> rules = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(name="room_payment_condition",
+            joinColumns=@JoinColumn(name="room_id"),  // here it will take the primary key from the RoomDetail entity
+            inverseJoinColumns=@JoinColumn(name="condition_id")  // here it will take the primary key from the PaymentCondition entity
+    )
+    private Set<PaymentCondition> paymentConditions = new HashSet<>();
 
     @Setter
     @Getter
