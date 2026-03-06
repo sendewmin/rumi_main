@@ -1,32 +1,16 @@
-
-import logo from './logo.svg';
-import './App.css';
-// room listing_page import
+import logo from "./logo.svg";
+import "./App.css";
+// room listing page import
 import ListingPage from "./room_listing/listing_page";
+// auth import
+import AuthPage from "./auth/authpage";
 
 function App() {
   return (
     <div className="App">
-      {/* <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header> */}
-
-      <ListingPage/>
+      <AuthPage />
     </div>
   );
-
-
 }
 
 export default App;
