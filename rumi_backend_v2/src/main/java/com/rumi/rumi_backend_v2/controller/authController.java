@@ -6,6 +6,7 @@ import com.rumi.rumi_backend_v2.enums.UserStatus;
 import com.rumi.rumi_backend_v2.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,17 +20,35 @@ public class AuthController {
 
     private final UserService userService;
 
+    @Value("${auth.supabase.enabled:true}")
+    private boolean supabaseEnabled;
+
     @PostMapping("/register")
     public RegisterResponse register(@RequestBody RegisterRequest request) {
         try {
+            String uid;
+            String email;
+            if (supabaseEnabled) {
+                if (request.accessToken == null || request.accessToken.isBlank()) {
+                    throw new IllegalArgumentException("accessToken is required");
+                }
+                // TODO: verify Supabase JWT and extract uid/email
+            }
+            if (request.supabaseUid == null || request.supabaseUid.isBlank()) {
+                throw new IllegalArgumentException("supabaseUid is required");
+            }
+            if (request.email == null || request.email.isBlank()) {
+                throw new IllegalArgumentException("email is required");
+            }
+            uid = request.supabaseUid;
+            email = request.email;
             User user = User.builder()
-                .firebaseUid(request.firebaseUid)
+                .supabaseUid(uid)
                 .full_name(request.name)
-                .email(request.email)
-                .password(request.password)
+                .email(email)
                 .phone_number(request.phoneNumber)
                 .role(request.role)
-                .status(UserStatus.Active)
+                .status(UserStatus.ACTIVE)
                 .profile_complete(false)
                 .phone_verified(false)
                 .build();
@@ -43,7 +62,20 @@ public class AuthController {
     @PostMapping("/login")
     public UserResponse login(@RequestBody LoginRequest request) {
         try {
-            User user = userService.login(request.email, request.password);
+            User user;
+            if (supabaseEnabled) {
+                if (request.accessToken == null || request.accessToken.isBlank()) {
+                    throw new IllegalArgumentException("accessToken is required");
+                }
+                // TODO: verify Supabase JWT and extract uid
+            }
+            if (request.supabaseUid != null && !request.supabaseUid.isBlank()) {
+                user = userService.findBySupabaseUid(request.supabaseUid);
+            } else if (request.email != null && !request.email.isBlank()) {
+                user = userService.findByEmail(request.email);
+            } else {
+                throw new IllegalArgumentException("supabaseUid or email is required");
+            }
             return UserResponse.from(user);
         } catch (IllegalArgumentException ex) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, ex.getMessage());
@@ -51,17 +83,18 @@ public class AuthController {
     }
 
     public static class RegisterRequest {
-        public String firebaseUid;
-        public String name;
+        public String accessToken;
+        public String supabaseUid;
         public String email;
-        public String password;
+        public String name;
         public String phoneNumber;
         public RoleName role;
     }
 
     public static class LoginRequest {
+        public String accessToken;
+        public String supabaseUid;
         public String email;
-        public String password;
     }
 
     public static class UserResponse {
@@ -72,7 +105,7 @@ public class AuthController {
 
         static UserResponse from(User user) {
             UserResponse response = new UserResponse();
-            response.id = user.getFirebaseUid();
+            response.id = user.getSupabaseUid();
             response.name = user.getFull_name();
             response.email = user.getEmail();
             response.role = user.getRole();
