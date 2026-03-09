@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./auth/AuthContext";
 import AuthPage from "./auth/AuthPage";
 import Dashboard from "./auth/Dashboard";
-import { useAuth } from "./auth/AuthContext";
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -24,12 +24,10 @@ function AppRoutes() {
   );
 }
 
-function App() {
+export default function App() {
   return (
     <BrowserRouter>
       <AppRoutes />
     </BrowserRouter>
   );
 }
-
-export default App;
