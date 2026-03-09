@@ -1,7 +1,9 @@
 package com.rumi.rumi_backend_v2.entity;
 
 import com.rumi.rumi_backend_v2.enums.RoleName;
+import com.rumi.rumi_backend_v2.enums.RoleNameConverter;
 import com.rumi.rumi_backend_v2.enums.UserStatus;
+import com.rumi.rumi_backend_v2.enums.UserStatusConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -12,6 +14,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name="app_user")
 @Builder           // for easy object creation
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class User {
 
     @Id
@@ -37,14 +41,14 @@ public class User {
     @Getter
     @Setter
     // Role field using enum
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = RoleNameConverter.class)
     @Column(name ="role",nullable = false)
     // here we store only the enum value (Admin, Renter and Rentee)
     private RoleName role;
 
     @Getter
     @Setter
-    @Enumerated(EnumType.STRING)   // The enum value will be stored as String
+    @Convert(converter = UserStatusConverter.class)
     @Column(name="status",nullable = false)
     // here we store only the enum value (Active, Inactive, Suspended, Deleted)
     private UserStatus status;
