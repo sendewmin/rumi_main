@@ -4,6 +4,7 @@ import com.rumi.rumi_backend_v2.entity.User;
 import com.rumi.rumi_backend_v2.enums.RoleName;
 import com.rumi.rumi_backend_v2.enums.UserStatus;
 import com.rumi.rumi_backend_v2.service.UserService;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Value;
@@ -83,16 +84,22 @@ public class AuthController {
     }
 
     public static class RegisterRequest {
+        @JsonAlias("access_token")
         public String accessToken;
+        @JsonAlias("supabase_uid")
         public String supabaseUid;
         public String email;
+        @JsonAlias({"full_name", "fullName", "name"})
         public String name;
+        @JsonAlias({"phone_number", "phone"})
         public String phoneNumber;
         public RoleName role;
     }
 
     public static class LoginRequest {
+        @JsonAlias("access_token")
         public String accessToken;
+        @JsonAlias("supabase_uid")
         public String supabaseUid;
         public String email;
     }

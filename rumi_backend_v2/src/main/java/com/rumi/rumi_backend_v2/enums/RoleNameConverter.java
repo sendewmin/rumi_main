@@ -12,8 +12,8 @@ public class RoleNameConverter implements AttributeConverter<RoleName, String> {
         if (attribute == null) {
             return null;
         }
-        // Store lowercase values to align with DB constraints and seeded data.
-        return attribute.name().toLowerCase(Locale.ROOT);
+        // Store enum name as-is (uppercase) to satisfy DB check constraints.
+        return attribute.name();
     }
 
     @Override
