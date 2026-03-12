@@ -15,29 +15,30 @@ import org.springframework.stereotype.Repository;
 public interface RoomFilterRepository extends JpaRepository<RoomDetail, Long> {
 
     @Query("""
-        SELECT new com.rumi.rumi_backend_v2.dto.RoomFilterResponse(
-            r.roomId,
-            r.roomTitle,
-            r.roomDescription,
-            r.genderAllowed,
-            r.roomStatus,
-            r.maxRoommates,
-            a.city,
-            a.country,
-            a.addressLine,
-            p.amount,
-            p.billingCycle
-        )
-        FROM RoomDetail r
-        JOIN Address a ON a.room = r
-        JOIN RoomPrice p ON p.room = r
-        WHERE (:city IS NULL OR LOWER(a.city) LIKE LOWER(CONCAT('%', :city, '%')))
-        AND (:country IS NULL OR LOWER(a.country) LIKE LOWER(CONCAT('%', :country, '%')))
-        AND (:minPrice IS NULL OR p.amount >= :minPrice)
-        AND (:maxPrice IS NULL OR p.amount <= :maxPrice)
-        AND (:genderAllowed IS NULL OR r.genderAllowed = :genderAllowed)
-        AND (:roomStatus IS NULL OR r.roomStatus = :roomStatus)
-    """)
+    SELECT new com.rumi.rumi_backend_v2.dto.RoomFilterResponse(
+        r.roomId,
+        r.roomTitle,
+        r.roomDescription,
+        r.genderAllowed,
+        r.roomStatus,
+        r.maxRoommates,
+        a.city,
+        a.country,
+        a.addressLine,
+        p.amount,
+        p.billingCycle
+    )
+    FROM RoomDetail r
+    JOIN Address a ON a.room = r
+    JOIN RoomPrice p ON p.room = r
+    WHERE (:city IS NULL OR a.city = :city)
+    AND (:country IS NULL OR a.country = :country)
+    AND (:minPrice IS NULL OR p.amount >= :minPrice)
+    AND (:maxPrice IS NULL OR p.amount <= :maxPrice)
+    AND (:genderAllowed IS NULL OR r.genderAllowed = :genderAllowed)
+    AND (:roomStatus IS NULL OR r.roomStatus = :roomStatus)
+""")
+
     Page<RoomFilterResponse> filterRooms(
             @Param("city") String city,
             @Param("country") String country,
