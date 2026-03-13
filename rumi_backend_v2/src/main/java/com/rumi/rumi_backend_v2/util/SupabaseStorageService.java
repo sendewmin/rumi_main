@@ -1,13 +1,16 @@
 package com.rumi.rumi_backend_v2.util;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 
+@Service
 public class SupabaseStorageService {
 
     @Value("${SUPABASE_URL}")
@@ -22,18 +25,26 @@ public class SupabaseStorageService {
 
     public String upload(MultipartFile file, String path) {
 
-        try{
-            String uploadUrl=supabaseUrl + "/storage/v1/object/" + bucket+ "/" + path;
+        try {
+            String uploadUrl = supabaseUrl + "/storage/v1/object/" + bucket + "/" + path;
             HttpURLConnection connection = getHttpURLConnection(file, uploadUrl);
-            OutputStream os = connection.getOutputStream(); // Here we get the connection outputStream
-            os.write(file.getBytes());  //here we get the file and get the bytes and write it to the connection outputStream
+
+            try (OutputStream os = connection.getOutputStream()) {
+                os.write(file.getBytes());
+            }
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode != 200) {
+                throw new RuntimeException("Supabase Image Upload Failed: " + connection.getResponseMessage());
+            }
+
+            // Return public URL (corrected with slash)
+            return supabaseUrl + "/storage/v1/object/public/" + bucket + "/" + path;
 
         }
         catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Supabase Image Upload Failed: " + e.getMessage(), e);
         }
-
-
 
     }
 
