@@ -1,9 +1,5 @@
 package com.rumi.dto;
 
-// DTO = Data Transfer Object
-// This is what the frontend sends when creating or updating a room.
-// We use a DTO so we never expose internal entity fields directly.
-
 public class RoomRequest {
 
     private String title;
