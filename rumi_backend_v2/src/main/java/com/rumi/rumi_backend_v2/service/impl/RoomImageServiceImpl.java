@@ -2,6 +2,7 @@ package com.rumi.rumi_backend_v2.service.impl;
 
 import com.rumi.rumi_backend_v2.dto.RoomImageDto;
 import com.rumi.rumi_backend_v2.entity.RoomDetail;
+import com.rumi.rumi_backend_v2.entity.RoomImage;
 import com.rumi.rumi_backend_v2.repo.RoomImageRepo;
 import com.rumi.rumi_backend_v2.repo.RoomRepo;
 import com.rumi.rumi_backend_v2.service.RoomImageService;
@@ -28,9 +29,9 @@ public class RoomImageServiceImpl implements RoomImageService {
     @Override
     public void uploadRoomImages(Long roomId, List<MultipartFile> images) {
 
-        if(roomRepo.existsById(roomId)){
-            RoomDetail roomDetail=roomRepo.findByRoomId(roomId);  //Here we store the roomDetail the method is from RoomRepo
 
+        RoomDetail roomDetail=roomRepo.findByRoomId(roomId);  //Here we store the roomDetail the method is from RoomRepo
+        if(roomDetail!=null){
             // here for each MultipartFile in the images are looped and taken
             for(MultipartFile file : images) {
                 String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();  //here a random UUID is generated plus _ and file name
@@ -38,17 +39,26 @@ public class RoomImageServiceImpl implements RoomImageService {
                 String path = roomId + "/" + fileName;  //here a path will be created with room id and filename.
                 System.out.println("path:" + path);
 
-                String imageUrl= supabaseStorageService.upload(file,path);
-            }
+                try{
+                    String imageUrl= supabaseStorageService.upload(file,path);
 
+                    // Save image record to DB
+                    RoomImage roomImage = RoomImage.builder()
+                            .room(roomDetail)
+                            .imageUrl(imageUrl)
+                            .build();
+                    roomImageRepo.save(roomImage);
+                }
+                catch (RuntimeException e){
+                    // Fail fast if any upload fails
+                    throw new RuntimeException("Failed to upload image: " + file.getOriginalFilename(), e);
+                }
+            }
 
         }
         else {
             // Throw a specific exception with a clear message
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Room not found with id: " + roomId
-            );
+            throw new RuntimeException("Room not found with id: " + roomId); // will map to 404 in controller
         }
         //Front-end should first collect room details to upload room (All room information including images single UI)
         //Room creation API --> After created we get room_id
@@ -82,7 +92,7 @@ public class RoomImageServiceImpl implements RoomImageService {
         //When fetching give me the room id.
         //Return the images from the RoomImage table.
         //If not there, or fetch failed according to the result show in UI like no images, or fetch failed.
-
+        return null;
     }
 
 
