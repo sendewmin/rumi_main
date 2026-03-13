@@ -23,7 +23,6 @@ public class Room {
     @Column(nullable = false)
     private String location;
 
-    // This links the room to the landlord (User ID from Member 2's User table)
     @Column(nullable = false)
     private Long landlordId;
 
@@ -32,7 +31,7 @@ public class Room {
 
     private LocalDateTime updatedAt;
 
-    // Automatically set timestamps before saving
+    
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -43,8 +42,6 @@ public class Room {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-
-    // ─── Getters & Setters ───────────────────────────────────────────────────
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
