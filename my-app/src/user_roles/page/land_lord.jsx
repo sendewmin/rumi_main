@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import "./App.css";
+import "./land_lord.css";
 import {
   MapPin,
   ShieldAlert,
