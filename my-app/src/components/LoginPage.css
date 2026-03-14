@@ -38,7 +38,7 @@
 }
 
 .lp-logo-text {
-  color: #20B2AA;
+  color: #004a99;
   font-size: 14px;
   font-weight: bold;
 }
@@ -72,7 +72,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background: #f8f9fa;
+  background: linear-gradient(180deg, #f4f9ff 0%, #eef5ff 100%);
 }
 
 .lp-form-inner {
@@ -118,9 +118,9 @@
 }
 
 .lp-role-btn.active {
-  background: #20B2AA;
+  background: #004a99;
   color: white;
-  border-color: #20B2AA;
+  border-color: #004a99;
 }
 
 .lp-form {
@@ -142,7 +142,8 @@
 }
 
 .lp-input:focus {
-  border-color: #20B2AA;
+  border-color: #00b8d9;
+  box-shadow: 0 0 0 3px rgba(0, 184, 217, 0.12);
 }
 
 .lp-password-wrapper {
@@ -172,13 +173,13 @@
 }
 
 .lp-forgot-link {
-  color: #20B2AA;
+  color: #004a99;
   font-size: 13px;
   text-decoration: none;
 }
 
 .lp-submit-btn {
-  background: #20B2AA;
+  background: #004a99;
   color: white;
   border: none;
   padding: 14px;
@@ -187,10 +188,10 @@
   font-size: 15px;
   cursor: pointer;
   width: 100%;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, transform 0.15s ease;
 }
 
-.lp-submit-btn:hover { background: #1a9e97; }
+.lp-submit-btn:hover { background: #003f7f; transform: translateY(-1px); }
 
 .lp-signup-row {
   text-align: center;

@@ -35,7 +35,7 @@
 }
 
 .ts-logo-text {
-  color: #20B2AA;
+  color: #004a99;
   font-size: 14px;
   font-weight: bold;
 }
@@ -57,7 +57,7 @@
 
 .ts-overlay-badge {
   display: inline-block;
-  background: #20B2AA;
+  background: #004a99;
   color: white;
   font-size: 12px;
   font-weight: 700;
@@ -106,7 +106,7 @@
   box-sizing: border-box;
 }
 
-.ts-input:focus { border-color: #20B2AA; }
+.ts-input:focus { border-color: #00b8d9; box-shadow: 0 0 0 3px rgba(0, 184, 217, 0.12); }
 .ts-full { width: 100%; }
 
 .ts-password-wrapper { position: relative; }
@@ -126,12 +126,12 @@
 }
 
 .ts-terms { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #555; }
-.ts-terms input[type='checkbox'] { accent-color: #20B2AA; width: 16px; height: 16px; cursor: pointer; }
-.ts-link { color: #20B2AA; text-decoration: none; font-weight: 500; }
+.ts-terms input[type='checkbox'] { accent-color: #004a99; width: 16px; height: 16px; cursor: pointer; }
+.ts-link { color: #004a99; text-decoration: none; font-weight: 500; }
 .ts-link:hover { text-decoration: underline; }
 
 .ts-submit-btn {
-  background: #20B2AA;
+  background: #004a99;
   color: white;
   border: none;
   padding: 14px;
@@ -143,7 +143,7 @@
   transition: background 0.2s ease;
 }
 
-.ts-submit-btn:hover { background: #1a9e97; }
+.ts-submit-btn:hover { background: #003f7f; }
 .ts-login-row { text-align: center; margin: 14px 0 0; font-size: 14px; color: #666; }
 
 .ts-divider { text-align: center; margin: 14px 0; position: relative; }

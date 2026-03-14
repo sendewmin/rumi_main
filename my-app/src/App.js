@@ -1,32 +1,22 @@
 
-import logo from './logo.svg';
 import './App.css';
-// room listing_page import
-import ListingPage from "./room_listing/listing_page";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import LoginPage from './components/LoginPage';
+import TenantSignup from './components/TenantSignup';
+import LandlordSignup from './components/LandlordSignup';
 
 function App() {
   return (
     <div className="App">
-      {/* <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header> */}
-
-      <ListingPage/>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/signup/tenant" element={<TenantSignup />} />
+          <Route path="/signup/landlord" element={<LandlordSignup />} />
+        </Routes>
+      </BrowserRouter>
     </div>
   );
-
-
 }
 
 export default App;
