@@ -6,9 +6,20 @@ import TenantSignup from './components/TenantSignup';
 import LandlordSignup from './components/LandlordSignup';
 import LandlordPage from './user_roles/page/land_lord';
 
+import Hero from './components/Hero';
+import CategoryCarousel from './components/CategoryCarousel';
+import PlaceScroller from './components/PlaceScroller';
+import Home_statement from './components/Home_statement';
+
 function App() {
   return (
     <div className="App">
+      
+      <Hero />
+      <CategoryCarousel />
+      <Home_statement />
+      <PlaceScroller />
+
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandlordPage />} />
