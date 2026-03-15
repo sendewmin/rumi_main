@@ -13,17 +13,18 @@ const imageApi = {
             formData.append("image", image);
         });
 
+        var token = process.env.REACT_APP_ACCESS_TOKEN
+
         return axiosClient.post(`/rooms/${room_id}/images`, formData, {
             headers: {
-                "Content-Type": "multipart/form-data"
+                "Content-Type": "multipart/form-data",
+                "Authorization" : `Bearer ${token}`
             }
         });
     }
     ,
     getImage: (room_id) => {
-        return axiosClient.get(`/rooms/${room_id}/images`, {
-            responseType: "blob"
-        });
+        return axiosClient.get(`/rooms/${room_id}/images`);
     }
 
 
