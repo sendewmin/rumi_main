@@ -10,7 +10,10 @@ import java.util.List;
 public interface RoomImageService {
 
     //here we create a method where room id and images as list will created
-    void uploadRoomImages(Long room_id, List<MultipartFile> images);
+    void uploadRoomImages(Long room_id, List<MultipartFile> images,String userId);
 
+    // here we create a method where images can be fetched by the roomId.
     List<RoomImageDto> fetchRoomImages(Long roomId);
+
+
 }
