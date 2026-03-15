@@ -32,5 +32,11 @@ build/
 ### VS Code ###
 .vscode/
 
+### Security — never commit these ───────────────────────────────────────────
+# Firebase service-account JSON
+*.json
 
-/env.properties
+# Environment variable files
+.env
+.env.*
+application-local.properties
