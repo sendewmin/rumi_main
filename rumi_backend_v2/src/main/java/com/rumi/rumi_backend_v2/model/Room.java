@@ -1,4 +1,4 @@
-package com.roomlisting.entity;
+package com.rumi.rumi_backend_v2.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;

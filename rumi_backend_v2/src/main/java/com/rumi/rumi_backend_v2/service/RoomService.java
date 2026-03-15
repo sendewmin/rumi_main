@@ -1,12 +1,12 @@
-package com.roomlisting.service;
+package com.rumi.rumi_backend_v2.service;
 
-import com.roomlisting.dto.RoomRequestDTO;
-import com.roomlisting.dto.RoomResponseDTO;
-import com.roomlisting.dto.RoomUpdateDTO;
-import com.roomlisting.entity.Room;
-import com.roomlisting.exception.RoomNotFoundException;
-import com.roomlisting.exception.UnauthorizedAccessException;
-import com.roomlisting.repository.RoomRepository;
+import com.rumi.rumi_backend_v2.dto.RoomRequestDTO;
+import com.rumi.rumi_backend_v2.dto.RoomResponseDTO;
+import com.rumi.rumi_backend_v2.dto.RoomUpdateDTO;
+import com.rumi.rumi_backend_v2.entity.Room;
+import com.rumi.rumi_backend_v2.exception.RoomNotFoundException;
+import com.rumi.rumi_backend_v2.exception.UnauthorizedAccessException;
+import com.rumi.rumi_backend_v2.repository.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -1,9 +1,9 @@
-package com.roomlisting.controller;
+package com.rumi.rumi_backend_v2.controller;
 
-import com.roomlisting.dto.RoomRequestDTO;
 import com.rumi.rumi_backend_v2.dto.RoomRequestDTO;
-import com.roomlisting.dto.RoomUpdateDTO;
-import com.roomlisting.service.RoomService;
+import com.rumi.rumi_backend_v2.dto.RoomRequestDTO;
+import com.rumi.rumi_backend_v2.dto.RoomUpdateDTO;
+import com.rumi.rumi_backend_v2.service.RoomService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

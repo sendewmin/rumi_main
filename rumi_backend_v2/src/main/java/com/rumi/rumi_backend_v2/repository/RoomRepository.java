@@ -1,6 +1,6 @@
-package com.roomlisting.repository;
+package com.rumi.rumi_backend_v2.repository;
 
-import com.roomlisting.entity.Room;
+import com.rumi.rumi_backend_v2.entity.Room;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
