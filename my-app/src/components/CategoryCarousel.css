@@ -1,8 +1,8 @@
 
 .category-carousel-container {
-  width: 600px;
-  height: 400px;
-  margin: 50px auto;
+  width: min(640px, 100%);
+  height: 300px;
+  margin: 0 auto;
   position: relative;
   perspective: 1000px;
 }
@@ -13,65 +13,64 @@
   top: 50%;
   left: 50%;
   transform-origin: center center;
-  transition: all 0.8s ease;
-  border-radius: 20px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-  opacity: 0.5;
-  width: 100px;
+  transition: all 0.62s ease;
+  border-radius: 16px;
+  box-shadow: 0 12px 26px rgba(0,0,0,0.2);
+  opacity: 0.45;
+  width: 160px;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.8);
 }
 
 
 .center {
-  transform: translate(-50%, -50%) scale(1.2);
+  transform: translate(-50%, -50%) scale(1.06);
   z-index: 3;
   opacity: 1;
 }
 
 .left {
-  transform: translate(-150%, -50%) scale(0.8);
+  transform: translate(-145%, -50%) scale(0.84);
   z-index: 2;
 }
 
 .right {
-  transform: translate(50%, -50%) scale(0.8);
+  transform: translate(45%, -50%) scale(0.84);
   z-index: 2;
 }
 
 .far-left {
-  transform: translate(-250%, -50%) scale(0.6);
+  transform: translate(-230%, -50%) scale(0.7);
   z-index: 1;
-  opacity: 0.4;
+  opacity: 0.35;
 }
 
 .far-right {
-  transform: translate(150%, -50%) scale(0.6);
+  transform: translate(130%, -50%) scale(0.7);
   z-index: 1;
-  opacity: 0.4;
+  opacity: 0.35;
 }
 
 @media (max-width:600px) { 
   .category-carousel-image {
-    width: 40vw;
-    max-width: 200px;
+    width: 28vw;
+    max-width: 132px;
   }
   .category-carousel-container {
-    height: 60vw;
-    max-height: 250px;
+    height: 220px;
   }
 
   .left {
-    transform: translate(-120%, -50%) scale(0.7);
+    transform: translate(-118%, -50%) scale(0.76);
   }
   .right {
-    transform: translate(70%, -50%) scale(0.7);
+    transform: translate(36%, -50%) scale(0.76);
   }
   .far-left {
-    transform: translate(-200%, -50%) scale(0.5);
+    transform: translate(-182%, -50%) scale(0.6);
   }
   .far-right {
-    transform: translate(140%, -50%) scale(0.5);
-  }
-  .center {
-    scale: 1; /* smaller center on mobile */
+    transform: translate(96%, -50%) scale(0.6);
   }
 }
