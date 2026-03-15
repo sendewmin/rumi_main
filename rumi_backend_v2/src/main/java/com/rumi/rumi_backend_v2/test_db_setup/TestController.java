@@ -1,12 +1,12 @@
 package com.rumi.rumi_backend_v2.test_db_setup;
 
+import com.google.firebase.FirebaseApp;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/test")
@@ -18,43 +18,37 @@ public class TestController {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // ✅ Get all tables with error handling
-    @GetMapping("/postgres/tables")
-    public Map<String, Object> showTables() {
+    @GetMapping("/mysql/tables")
+    public String showTables() {
         try {
             List<String> tables = jdbcTemplate.queryForList(
-                    "SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'",
+                    "SHOW TABLES",
                     String.class
             );
-            return Map.of(
-                    "status", "success",
-                    "tables", tables
-            );
+
+            // Join table names into a single string
+            String tableList = String.join(", ", tables);
+
+            return "MySQL Connected ✅ | Tables: " + "{ " + tableList + " )";
+
         } catch (Exception e) {
-            return Map.of(
-                    "status", "error",
-                    "message", e.getMessage()
-            );
+            return "MySQL Error ❌ " + e.getMessage();
         }
     }
 
-    // ✅ Get current database name with error handling
-    @GetMapping("/postgres/database")
-    public Map<String, Object> currentDatabase() {
+    @GetMapping("/mysql/database")
+    public String currentDatabase() {
+        return "MySQL Connected ✅ | " + jdbcTemplate.queryForObject("SELECT DATABASE()", String.class);
+    }
+
+    @GetMapping("/firebase")
+    public String testFirebase() {
         try {
-            String dbName = jdbcTemplate.queryForObject(
-                    "SELECT current_database()",
-                    String.class
-            );
-            return Map.of(
-                    "status", "success",
-                    "database", dbName
-            );
+            FirebaseApp app = FirebaseApp.getInstance();
+            return "Firebase Connected ✅ | App name: " + app.getName();
         } catch (Exception e) {
-            return Map.of(
-                    "status", "error",
-                    "message", e.getMessage()
-            );
+            return "Firebase Error ❌ " + e.getMessage();
         }
     }
+
 }

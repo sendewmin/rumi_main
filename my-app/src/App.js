@@ -1,7 +1,32 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext";
-import AuthPage from "./auth/AuthPage";
 import Dashboard from "./auth/Dashboard";
+
+import "./App.css";
+
+// room listing page import
+import ListingPage from "./room_listing/listing_page";
+import LoginPage from "./components/LoginPage";
+import TenantSignup from "./components/TenantSignup";
+import LandlordSignup from "./components/LandlordSignup";
+import LandlordPage from "./user_roles/page/land_lord";
+
+import Hero from "./components/Hero";
+import CategoryCarousel from "./components/CategoryCarousel";
+import PlaceScroller from "./components/PlaceScroller";
+import Home_statement from "./components/Home_statement";
+
+function HomePage() {
+  return (
+    <>
+      <Hero />
+      <CategoryCarousel />
+      <Home_statement />
+      <PlaceScroller />
+      <ListingPage />
+    </>
+  );
+}
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -11,14 +36,40 @@ function AppRoutes() {
 
   return (
     <Routes>
+      {/* Root — redirect to /home if logged in, else /login */}
       <Route
         path="/"
-        element={user ? <Navigate to="/dashboard" replace /> : <AuthPage />}
+        element={<Navigate to={user ? "/home" : "/login"} replace />}
+      />
+
+      {/* Auth routes — redirect to /home if already logged in */}
+      <Route
+        path="/login"
+        element={user ? <Navigate to="/home" replace /> : <LoginPage />}
       />
       <Route
-        path="/dashboard"
-        element={user ? <Dashboard /> : <Navigate to="/" replace />}
+        path="/signup/tenant"
+        element={user ? <Navigate to="/home" replace /> : <TenantSignup />}
       />
+      <Route
+        path="/signup/landlord"
+        element={user ? <Navigate to="/home" replace /> : <LandlordSignup />}
+      />
+
+      {/* Protected routes — redirect to /login if not logged in */}
+      <Route
+        path="/dashboard"
+        element={user ? <Dashboard /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/landlord"
+        element={user ? <LandlordPage /> : <Navigate to="/login" replace />}
+      />
+
+      {/* Public routes */}
+      <Route path="/home" element={<HomePage />} />
+
+      {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
