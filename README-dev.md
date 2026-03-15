@@ -1,120 +1,232 @@
-# 🏠 Room Rental Backend `v2`
+# 🏠 Rumi Room Rental — Developer Guide
 
-> **Next-generation backend service for the Room Rental Project.** <br> Built with **React** (Frontend) + **Spring Boot** (Backend) and powered by **PostgreSQL** via **Supabase**.
+## 1️⃣ Prerequisites
 
----
-
-## 📚 Tech Stack
-
-| Component | Technology |
-| :--- | :--- |
-| **Language** | ![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=flat&logo=openjdk&logoColor=white) |
-| **Framework** | ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-6DB33F?style=flat&logo=springboot&logoColor=white) |
-| **Database** | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat&logo=postgresql&logoColor=white) |
-| **Hosting** | ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat&logo=supabase&logoColor=white) |
-| **Build Tool** | ![Maven](https://img.shields.io/badge/Apache%20Maven-C71A36?style=flat&logo=Apache%20Maven&logoColor=white) |
+| Tool | Version |
+|---|---|
+| Java | 17+ |
+| Maven | via `mvnw` wrapper (no install needed) |
+| MySQL | 8+ (MySQL Server + Workbench, or XAMPP) |
+| IDE | IntelliJ IDEA (recommended) |
+| Firebase | Service account JSON from project owner |
 
 ---
 
-## 🚀 Getting Started
+## 2️⃣ One-Time Setup
 
-Follow these steps carefully to connect your local environment to the **shared TEST development database**.
+### Step 1 — Get Firebase access & JSON
+1. Ask the project owner to add your email to the Firebase project
+2. Open [Firebase Console](https://console.firebase.google.com) → Project Settings → Service Accounts → **Generate new private key**
+3. Save the JSON to a folder **outside the repo** (e.g. `C:\Users\you\Documents\firebase\rumi-firebase.json`)
 
-> [!IMPORTANT]  
-> **Security Rules:**
-> * Use **ONLY** the development database: `rumi-rental-db-test`.
-> * **NEVER** commit your `env.properties` file to GitHub.
-> * **NO CHANGES** needed for `application.properties`.
-
----
-
-## 🛠 Database Setup (Supabase)
-
-### 1️⃣ Access & Connection
-* **Accept Invite:** Check your email for the Supabase workspace invitation.
-* **Get JDBC URL:** 1. Open [Supabase Dashboard](https://supabase.com/dashboard) → `rumi-rental-db-test` (from the Projects).
-    2. Click **Connect** (top-right corner).
-    3. Choose **Connection Type: JDBC** and **Method: Session Pooler**.
-    4. Copy the URL (e.g., `jdbc:postgresql://xxxxx.supabase.co:5432/postgres`).
-
-### 2️⃣ Credentials
-* **Get Password:** Will be given by me to the team.
-* Copy the database password for the next step.
-
----
-
-## 📂 Environment Configuration
-
-> [!WARNING]  
-> This project uses `env.properties`, **NOT** `.env`. You must create this manually in the root directory.
-
-### 3️⃣ Create `env.properties`
-rumi_backend_v2 → New → File → Name it (**env.properties**)
-
-Place this file in the **root folder** ( will appear above `src` and `pom.xml` after created):
-
-```text
-rumi_backend_v2/
- ├── src
- ├── env.properties   <-- 📄 Create this file here
- └── pom.xml
+### Step 2 — Create the MySQL database
+Open MySQL Workbench (or phpMyAdmin) and run:
+```sql
+CREATE DATABASE rumi_rental_db;
 ```
-### 4️⃣ Add Credentials
-Inside `env.properties`, add the following lines (replace with your actual values):
+> ⚠️ Use exactly this name — it's hard-coded in the datasource config.
 
-```properties
-DB_URL=your_copied_jdbc_url
-DB_USERNAME=the_database_username (In the link you copied from Supabase)
-DB_PASSWORD=your_database_password (I have provided it to you)
+### Step 3 — Set environment variables
+Open **Command Prompt** (not PowerShell) and run:
+```bat
+setx DB_URL            "jdbc:mysql://localhost:3306"
+setx DB_USERNAME       "root"
+setx DB_PASSWORD       "your_password_here"
+setx FIREBASE_CREDENTIALS "C:\Users\you\Documents\firebase\rumi-firebase.json"
+```
+> ⚠️ **Restart your IDE** after setting environment variables.
+
+---
+
+## 3️⃣ Running the App
+
+```bash
+# From the rumi_backend_v2 folder:
+.\mvnw.cmd spring-boot:run
 ```
 
-## ⚙️ Project Status (Already Configured)
-The following configurations are hardcoded—no action needed:
-
-1. **PostgreSQL Dependency: Drivers and JPA dialects are pre-installed (I have done it for you).**
-
-2. **Datasource Mapping: <br>application.properties is already linked to your environment variables:**
-
-```properties
-spring.datasource.url=${DB_URL}
-spring.datasource.username=${DB_USERNAME}
-spring.datasource.password=${DB_PASSWORD}
+Flyway automatically creates all tables on first run:
 ```
-> [!IMPORTANT]
-> 
-> **You do not have to do any configuration just create the env.properties file.**
+roles → users → rentee_profiles → renter_profiles → flyway_schema_history
+```
 
-### 5️⃣ Remove Old Environment Variables (If Any)
+---
 
-If you previously configured MySQL or another database:
+## 4️⃣ Verify It's Working
 
-1. Go to Edit System Environment Variables (Search in the Windows Search Bar)
-2. Click Environment Variables
-3. Delete the following variables (if they exist):
-   - DB_URL
-   - DB_USERNAME
-   - DB_PASSWORD
-   - FIREBASE_CREDENTIALS
-4. Click OK
+Open a browser or Postman and hit these endpoints:
 
-> [!IMPORTANT]
-> 
-> **🔁 Restart IntelliJ after deleting them**
+| # | URL | Expected Response |
+|---|---|---|
+| 1 | `GET /test/mysql/tables` | `MySQL Connected ✅ \| Tables: roles, users, ...` |
+| 2 | `GET /test/mysql/database` | `MySQL Connected ✅ \| rumi_rental_db` |
+| 3 | `GET /test/firebase` | `Firebase Connected ✅ \| App name: [DEFAULT]` |
+| 4 | `GET /hello` | `hello world` |
 
-## Finally What to do
-### ▶️ How to Run
-1. Pull 🔄 the latest code from main branch.
-2. Create 📄 the env.properties file correctly as instructed above.
-3. Run ▶️ the Spring Boot application.
+---
 
-### ✅ Expected Result 
-Application starts on port 8080 (default) without datasource errors.
+## 5️⃣ Project Structure
 
-### 🛠 Troubleshooting
-If you see...Try this...Connection Refused → Verify you are using the Session Pooler (Port 5432).
+```
+src/main/java/com/rumi/rumi_backend_v2/
+│
+├── model/                        ← JPA Entities (map to DB tables)
+│   ├── Role.java                 ← roles table
+│   ├── User.java                 ← users table (Firebase UID as PK)
+│   ├── RenteeProfile.java        ← rentee_profiles table
+│   └── RenterProfile.java        ← renter_profiles table
+│
+├── repository/                   ← Spring Data JPA (DB queries)
+│   ├── RoleRepository.java
+│   ├── UserRepository.java
+│   ├── RenteeProfileRepository.java
+│   └── RenterProfileRepository.java
+│
+├── dto/                          ← Data Transfer Objects (API in/out)
+│   ├── UserRegistrationRequest.java   ← request body for registration
+│   └── UserResponse.java              ← response sent to frontend
+│
+├── service/                      ← Business logic
+│   └── UserService.java          ← register, fetch user(s)
+│
+├── controller/                   ← REST API endpoints
+│   ├── UserController.java       ← /api/users
+│   └── HelloController.java      ← /hello (sanity check)
+│
+├── firebase/
+│   └── FirebaseConfig.java       ← Firebase Admin SDK init
+│
+└── test_db_setup/
+    └── TestController.java       ← /test/* connection checks
+│
+resources/
+├── application.properties        ← App config (reads env vars)
+└── db/migration/                 ← Flyway SQL scripts
+    ├── V1__create_roles_table.sql
+    ├── V2__seed_roles.sql
+    ├── V3__create_users_table.sql
+    ├── V4__create_rentee_profile.sql
+    └── V5__create_renter_profile.sql
+```
 
-Property not found → Ensure the file name is exactly env.properties (lowercase).
+---
 
-## 👥 Team Workflow
+## 6️⃣ API Endpoints
 
-### 1. Pull 🔄 | 2. Configure Env ⚙️ | 3. Run ▶️ | 4. Code 💻
+### User Registration & Retrieval — `/api/users`
+
+#### `POST /api/users/register`
+Call this **after** Firebase Auth succeeds on the frontend.
+
+**Request body:**
+```json
+{
+  "firebaseUid": "abc123xyz",
+  "fullName":    "Jane Doe",
+  "email":       "jane@example.com",
+  "phone":       "+60123456789",
+  "role":        "rentee"
+}
+```
+> `role` must be `"rentee"` or `"renter"`
+
+**Success response (201 Created):**
+```json
+{
+  "userId": "abc123xyz",
+  "fullName": "Jane Doe",
+  "email": "jane@example.com",
+  "phone": "+60123456789",
+  "role": "rentee",
+  "status": "active",
+  "profileCompleted": false,
+  "phoneVerified": false,
+  "createdAt": "2026-02-24T12:00:00"
+}
+```
+
+---
+
+#### `GET /api/users/{firebaseUid}`
+Fetch a user profile by Firebase UID.
+```
+GET /api/users/abc123xyz
+→ 200 OK  { ...UserResponse... }
+→ 404 Not Found  "User not found: abc123xyz"
+```
+
+---
+
+#### `GET /api/users`
+Fetch all users (for admin dashboard).
+```
+GET /api/users
+→ 200 OK  [ { ...UserResponse... }, ... ]
+```
+
+---
+
+## 7️⃣ How to Add a New Feature (Developer Workflow)
+
+### Adding a new table
+1. Create a new Flyway migration file in `resources/db/migration/`:
+   ```
+   V6__add_room_listing.sql
+   ```
+   ```sql
+   CREATE TABLE IF NOT EXISTS room_listings (
+       listing_id   BIGINT AUTO_INCREMENT PRIMARY KEY,
+       user_id      VARCHAR(128) NOT NULL,
+       title        VARCHAR(255) NOT NULL,
+       price        DECIMAL(10,2) NOT NULL,
+       created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+       FOREIGN KEY (user_id) REFERENCES users(user_id)
+   );
+   ```
+   > ⚠️ **Never edit an existing Vn__ file** — Flyway tracks checksums. Always create a new version.
+
+2. Create the JPA entity in `model/RoomListing.java`
+3. Create the repository in `repository/RoomListingRepository.java`
+4. Add service logic in `service/RoomListingService.java`
+5. Expose endpoints in `controller/RoomListingController.java`
+6. Restart the app — Flyway auto-runs the new migration ✅
+
+---
+
+## 8️⃣ How Firebase + MySQL Work Together
+
+```
+Frontend (Flutter / React)
+        │
+        │  1. User signs up → Firebase Auth
+        ▼
+   Firebase Auth ─────────────────────────────────────
+        │                                              │
+        │  Returns: firebaseUid, email, token          │ Stores auth credentials
+        │                                              │ (password, phone, Google)
+        │  2. Frontend calls our backend
+        ▼
+   Spring Boot Backend
+        │
+        │  POST /api/users/register
+        │  { firebaseUid, fullName, email, phone, role }
+        │
+        │  Saves user metadata in MySQL
+        ▼
+   MySQL — rumi_rental_db
+   (users, roles, rentee_profiles, renter_profiles)
+```
+
+- **Firebase** = holds authentication (who you are)
+- **MySQL** = holds application data (your profile, listings, bookings)
+- The `firebaseUid` links the two systems together as the shared primary key
+
+---
+
+## 9️⃣ Best Practices
+
+- ✅ Always use environment variables — never hardcode credentials
+- ✅ Never commit `firebase-service.json` (excluded in `.gitignore`)
+- ✅ Add new tables via Flyway migrations — never by editing existing V__ files
+- ✅ Always go through `Service` → `Repository` — never call the repository directly from a controller
+- ✅ Use DTOs (Request/Response) — never return JPA entities directly to the frontend
