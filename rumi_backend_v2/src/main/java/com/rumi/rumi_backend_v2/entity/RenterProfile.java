@@ -6,6 +6,8 @@ import lombok.*;
 
 @Entity
 @Table(name="renter_profile")
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class RenterProfile {
     @Id
