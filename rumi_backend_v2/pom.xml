@@ -44,7 +44,7 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-mysql</artifactId>
-        </dependency>.\mvnw.cmd clean
+        </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
