@@ -1,7 +1,7 @@
 package com.roomlisting.controller;
 
 import com.roomlisting.dto.RoomRequestDTO;
-import com.roomlisting.dto.RoomResponseDTO;
+import com.rumi.rumi_backend_v2.dto.RoomRequestDTO;
 import com.roomlisting.dto.RoomUpdateDTO;
 import com.roomlisting.service.RoomService;
 import jakarta.validation.Valid;
