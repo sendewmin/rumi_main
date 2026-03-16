@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { supabase } from "./supabaseClient";
 
-const ROLES = ["Student", "Teacher", "Admin", "Developer", "Manager", "Other"];
+// Only Tenant and Landlord roles are available in RUMI
+const ROLES = ["Tenant", "Landlord"];
 
+// Reusable input style used across all form fields
 const input = {
   display: "block",
   width: "100%",
@@ -16,9 +18,12 @@ const input = {
 };
 
 export default function AuthPage() {
+  // Track whether user is on login or signup mode
   const [mode, setMode] = useState("login");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+
+  // Form state for all fields
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -28,17 +33,8 @@ export default function AuthPage() {
     password: "",
   });
 
+  // Generic field updater — returns a change handler for a given key
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
-
-  const handleGoogleSignIn = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: window.location.origin + "/dashboard",
-      },
-    });
-    if (error) setMessage(error.message);
-  };
 
   const handleSubmit = async () => {
     setMessage("");
@@ -46,6 +42,7 @@ export default function AuthPage() {
 
     try {
       if (mode === "signup") {
+        // Validate all signup fields before sending to Supabase
         if (!form.firstName || !form.lastName)
           return setMessage("Please enter your first and last name.");
         if (!form.age || +form.age < 1 || +form.age > 120)
@@ -56,6 +53,7 @@ export default function AuthPage() {
         if (form.password.length < 6)
           return setMessage("Password must be at least 6 characters.");
 
+        // Create the auth user in Supabase
         const { data, error } = await supabase.auth.signUp({
           email: form.email,
           password: form.password,
@@ -64,6 +62,8 @@ export default function AuthPage() {
         if (error) return setMessage(error.message);
         if (!data.user) return setMessage("Could not create user. Try again.");
 
+        // Save extra profile details to the profiles table
+        // Using upsert because the trigger already created a basic row on signup
         const { error: profileError } = await supabase.from("profiles").upsert([
           {
             id: data.user.id,
@@ -77,16 +77,20 @@ export default function AuthPage() {
 
         if (profileError) return setMessage(profileError.message);
 
+        // Automatically sign the user in after signup
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: form.email,
           password: form.password,
         });
 
+        // If auto sign in fails, ask user to sign in manually
         if (signInError) {
           setMessage("Account created! Please sign in.");
           setMode("login");
         }
+        // Otherwise AuthContext detects the session and App.js redirects to /home
       } else {
+        // Login — validate fields then sign in with Supabase
         if (!form.email || !form.password)
           return setMessage("Email and password are required.");
 
@@ -96,10 +100,12 @@ export default function AuthPage() {
         });
 
         if (error) return setMessage(error.message);
+        // AuthContext detects new session, App.js redirects to /home automatically
       }
     } catch (err) {
       setMessage("Something went wrong. Please try again.");
     } finally {
+      // Always re-enable the button when done
       setLoading(false);
     }
   };
@@ -115,7 +121,7 @@ export default function AuthPage() {
     >
       <h2 style={{ textAlign: "center", marginBottom: 24 }}>RUMI</h2>
 
-      {/* Tabs */}
+      {/* Tab switcher between Sign In and Sign Up */}
       <div
         style={{
           display: "flex",
@@ -147,57 +153,7 @@ export default function AuthPage() {
         ))}
       </div>
 
-      {/* Google Sign In */}
-      <button
-        onClick={handleGoogleSignIn}
-        style={{
-          ...input,
-          background: "#fff",
-          border: "1px solid #ccc",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 10,
-          fontWeight: "500",
-        }}
-      >
-        <svg width="18" height="18" viewBox="0 0 48 48">
-          <path
-            fill="#FFC107"
-            d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.7-.1-4z"
-          />
-          <path
-            fill="#FF3D00"
-            d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"
-          />
-          <path
-            fill="#4CAF50"
-            d="M24 44c5.2 0 9.9-1.8 13.6-4.7l-6.3-5.2C29.4 35.6 26.8 36 24 36c-5.2 0-9.6-2.9-11.3-7.1l-6.6 4.9C9.6 39.6 16.3 44 24 44z"
-          />
-          <path
-            fill="#1976D2"
-            d="M43.6 20H24v8h11.3c-.9 2.4-2.5 4.4-4.7 5.8l6.3 5.2C41 35.8 44 30.3 44 24c0-1.3-.1-2.7-.4-4z"
-          />
-        </svg>
-        Continue with Google
-      </button>
-
-      {/* Divider */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          marginBottom: 12,
-        }}
-      >
-        <hr style={{ flex: 1, border: "none", borderTop: "1px solid #eee" }} />
-        <span style={{ fontSize: 12, color: "#aaa" }}>or</span>
-        <hr style={{ flex: 1, border: "none", borderTop: "1px solid #eee" }} />
-      </div>
-
-      {/* Sign Up fields */}
+      {/* Extra fields only shown during signup */}
       {mode === "signup" && (
         <>
           <input
@@ -232,7 +188,7 @@ export default function AuthPage() {
         </>
       )}
 
-      {/* Shared fields */}
+      {/* Email and password shown for both login and signup */}
       <input
         placeholder="Email"
         type="email"
@@ -248,14 +204,14 @@ export default function AuthPage() {
         style={input}
       />
 
-      {/* Error message */}
+      {/* Show error or success message */}
       {message && (
         <p style={{ color: "red", fontSize: 13, marginBottom: 12 }}>
           {message}
         </p>
       )}
 
-      {/* Submit */}
+      {/* Submit button — disabled while loading */}
       <button
         onClick={handleSubmit}
         disabled={loading}
@@ -271,7 +227,7 @@ export default function AuthPage() {
         {loading ? "Please wait..." : mode === "login" ? "Sign In" : "Sign Up"}
       </button>
 
-      {/* Switch mode */}
+      {/* Toggle between login and signup */}
       <p style={{ textAlign: "center", fontSize: 13, marginTop: 12 }}>
         {mode === "login" ? "No account? " : "Have an account? "}
         <span
