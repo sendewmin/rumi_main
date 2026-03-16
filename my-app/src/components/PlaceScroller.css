@@ -2,22 +2,26 @@
 .scroller-container {
   width: 100%;
   overflow: hidden;
-  background-color: #f0f0f0;
+  background: linear-gradient(180deg, #f6f9ff 0%, #f1f5fb 100%);
+  border-radius: 14px;
+  padding: 0.7rem 0;
 }
 
 .scroller-track-left{
   display: flex;
-  width: calc(400px * 8); 
-  animation: scroll 20s linear infinite;
+  width: calc(330px * 8);
+  animation: scroll 24s linear infinite;
 }
 
 .scroller-image {
-  width: 700px;
-  height: 300px;
-  border-radius: 20px;
-  margin-left: 2%;
-  margin-top: 2%;
+  width: 330px;
+  height: 220px;
+  border-radius: 14px;
+  margin-left: 12px;
+  margin-top: 0;
   object-fit: cover;
+  border: 1px solid #d7e6ff;
+  box-shadow: 0 10px 22px rgba(16, 45, 87, 0.12);
 }
 
 @keyframes scroll {
@@ -25,7 +29,27 @@
     transform: translateX(0);
   }
   100% {
-    transform: translateX(-1600px);
+    transform: translateX(-1320px);
+  }
+}
+
+@media (max-width: 760px) {
+  .scroller-track-left {
+    width: calc(240px * 8);
+  }
+
+  .scroller-image {
+    width: 240px;
+    height: 165px;
+  }
+
+  @keyframes scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-960px);
+    }
   }
 }
 
