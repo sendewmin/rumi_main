@@ -10,12 +10,6 @@ import TenantSignup from "./components/TenantSignup";
 import LandlordSignup from "./components/LandlordSignup";
 import LandlordPage from "./user_roles/page/land_lord";
 
-import Hero from "./components/Hero";
-import CategoryCarousel from "./components/CategoryCarousel";
-import PlaceScroller from "./components/PlaceScroller";
-import Home_statement from "./components/Home_statement";
-
-import "./App.css";
 import Homepage from "./components/Homepage";
 
 function HomePage() {
@@ -37,23 +31,21 @@ function AppRoutes() {
       {/* Root */}
       <Route
         path="/"
-        element={<Navigate to={user ? "/dashboard" : "/login"} replace />}
+        element={<Navigate to={user ? "/home" : "/login"} replace />}
       />
 
-      {/* Auth routes — redirect to /dashboard if already logged in */}
+      {/* Auth routes — redirect to /home if already logged in */}
       <Route
         path="/login"
-        element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />}
+        element={user ? <Navigate to="/home" replace /> : <LoginPage />}
       />
       <Route
         path="/signup/tenant"
-        element={user ? <Navigate to="/dashboard" replace /> : <TenantSignup />}
+        element={user ? <Navigate to="/home" replace /> : <TenantSignup />}
       />
       <Route
         path="/signup/landlord"
-        element={
-          user ? <Navigate to="/dashboard" replace /> : <LandlordSignup />
-        }
+        element={user ? <Navigate to="/home" replace /> : <LandlordSignup />}
       />
 
       {/* Protected routes */}
