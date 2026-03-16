@@ -1,7 +1,7 @@
 package com.rumi.rumi_backend_v2.controller;
 
 import com.rumi.rumi_backend_v2.dto.RoomRequestDTO;
-import com.rumi.rumi_backend_v2.dto.RoomRequestDTO;
+import com.rumi.rumi_backend_v2.dto.RoomResponseDTO;
 import com.rumi.rumi_backend_v2.dto.RoomUpdateDTO;
 import com.rumi.rumi_backend_v2.service.RoomService;
 import jakarta.validation.Valid;

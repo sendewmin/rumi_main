@@ -1,0 +1,26 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------< com.rumi:rumi_backend_v2 >----------------------
+[INFO] Building rumi_backend_v2 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/grpc/grpc-rls/1.55.1/grpc-rls-1.55.1.pom
+[INFO] Downloading from central: https://repo.maven.apache.org/maven2/com/google/cloud/google-cloud-firestore/3.13.0/google-cloud-firestore-3.13.0.pom
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  14.727 s
+[INFO] Finished at: 2026-03-16T09:34:25+05:30
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal on project rumi_backend_v2: Could not collect dependencies for project com.rumi:rumi_backend_v2:jar:0.0.1-SNAPSHOT
+[ERROR] Failed to read artifact descriptor for io.grpc:grpc-rls:jar:1.55.1
+[ERROR] 	Caused by: The following artifacts could not be resolved: io.grpc:grpc-rls:pom:1.55.1 (absent): Could not transfer artifact io.grpc:grpc-rls:pom:1.55.1 from/to central (https://repo.maven.apache.org/maven2): No such host is known (repo.maven.apache.org)
+[ERROR] Failed to read artifact descriptor for com.google.cloud:google-cloud-firestore:jar:3.13.0
+[ERROR] 	Caused by: The following artifacts could not be resolved: com.google.cloud:google-cloud-firestore:pom:3.13.0 (absent): Could not transfer artifact com.google.cloud:google-cloud-firestore:pom:3.13.0 from/to central (https://repo.maven.apache.org/maven2): repo.maven.apache.org
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/DependencyResolutionException
