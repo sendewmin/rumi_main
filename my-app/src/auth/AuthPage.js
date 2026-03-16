@@ -220,6 +220,7 @@ export default function AuthPage() {
           background: "#000",
           color: "#fff",
           fontWeight: "bold",
+          // When the button is loading
           cursor: loading ? "not-allowed" : "pointer",
           opacity: loading ? 0.6 : 1,
         }}
