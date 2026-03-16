@@ -1,15 +1,17 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext";
-import Dashboard from "./auth/Dashboard";
+import Dashboard from "./auth/SampleDashboard";
 
 import "./App.css";
 
+// Page imports
 import LoginPage from "./components/LoginPage";
 import TenantSignup from "./components/TenantSignup";
 import LandlordSignup from "./components/LandlordSignup";
 import LandlordPage from "./user_roles/page/land_lord";
 import Homepage from "./components/Homepage";
 
+// HomePage wraps the Homepage component
 function HomePage() {
   return (
     <div className="App">
@@ -21,6 +23,8 @@ function HomePage() {
 
 function AppRoutes() {
   const { user, loading } = useAuth();
+
+  // Show loading screen while Supabase checks for existing session
 
   if (loading)
     return <p style={{ textAlign: "center", marginTop: 80 }}>Loading...</p>;
@@ -69,6 +73,7 @@ function AppRoutes() {
 
 export default function App() {
   return (
+    // Wrap everything in BrowserRouter to enable routing
     <BrowserRouter>
       <AppRoutes />
     </BrowserRouter>
