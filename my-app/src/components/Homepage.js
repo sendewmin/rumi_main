@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 import Hero from "./Hero";
 import CategoryCarousel from "./CategoryCarousel";
@@ -24,12 +24,29 @@ const trustStats = [
 ];
 
 export default function Homepage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    // AuthContext detects logout, App.js redirects to /login automatically
   };
+
+  // Get initials for avatar
+  const initials = profile
+    ? `${profile.first_name?.[0] ?? ""}${profile.last_name?.[0] ?? ""}`.toUpperCase()
+    : (user?.email?.[0].toUpperCase() ?? "?");
 
   return (
     <section className="homepage-shell">
@@ -60,23 +77,170 @@ export default function Homepage() {
             ))}
           </div>
 
+          {/* Profile icon + dropdown */}
           {user && (
-            <button
-              onClick={handleSignOut}
-              style={{
-                padding: "8px 20px",
-                background: "#000",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                fontSize: 14,
-                cursor: "pointer",
-                fontWeight: "bold",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Sign Out
-            </button>
+            <div ref={dropdownRef} style={{ position: "relative" }}>
+              {/* Avatar button */}
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: "50%",
+                  background: "#004a99",
+                  color: "#fff",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: 15,
+                  fontWeight: "bold",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                {initials}
+              </button>
+
+              {/* Dropdown */}
+              {dropdownOpen && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 48,
+                    right: 0,
+                    background: "#fff",
+                    borderRadius: 12,
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+                    border: "1px solid #eee",
+                    minWidth: 220,
+                    zIndex: 1000,
+                    overflow: "hidden",
+                  }}
+                >
+                  {/* Header */}
+                  <div
+                    style={{
+                      padding: "16px",
+                      background: "#004a99",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: "50%",
+                        background: "rgba(255,255,255,0.2)",
+                        color: "#fff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 18,
+                        fontWeight: "bold",
+                        flexShrink: 0,
+                        border: "2px solid rgba(255,255,255,0.4)",
+                      }}
+                    >
+                      {initials}
+                    </div>
+                    <div>
+                      <p
+                        style={{
+                          color: "#fff",
+                          fontWeight: 700,
+                          fontSize: 15,
+                          margin: 0,
+                        }}
+                      >
+                        {profile?.first_name} {profile?.last_name}
+                      </p>
+                      <p
+                        style={{
+                          color: "rgba(255,255,255,0.7)",
+                          fontSize: 12,
+                          margin: 0,
+                        }}
+                      >
+                        {profile?.role ?? "User"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Details */}
+                  <div
+                    style={{
+                      padding: "12px 16px",
+                      borderBottom: "1px solid #f0f0f0",
+                    }}
+                  >
+                    {[
+                      { label: "Email", value: profile?.email ?? user?.email },
+                      { label: "Age", value: profile?.age },
+                      { label: "Phone", value: profile?.phone ?? "—" },
+                    ].map((row) => (
+                      <div
+                        key={row.label}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "6px 0",
+                          borderBottom: "1px solid #f9f9f9",
+                        }}
+                      >
+                        <span style={{ fontSize: 12, color: "#999" }}>
+                          {row.label}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: "#333",
+                            maxWidth: 140,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {row.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Sign out */}
+                  <button
+                    onClick={handleSignOut}
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      background: "#fff",
+                      border: "none",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "#e53e3e",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      transition: "background 0.15s",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background = "#fff5f5")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "#fff")
+                    }
+                  >
+                    ⎋ Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </header>
 
