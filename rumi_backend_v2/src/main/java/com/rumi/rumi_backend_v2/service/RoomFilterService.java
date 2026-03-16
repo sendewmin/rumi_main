@@ -28,4 +28,7 @@ public class RoomFilterService {
                 city, country, minPrice, maxPrice, genderAllowed, roomStatus, pageable
         );
     }
+    public long getTotalRoomCount() {
+        return roomFilterRepository.count();
+    }
 }
