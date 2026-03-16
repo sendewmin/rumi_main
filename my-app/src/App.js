@@ -4,7 +4,6 @@ import Dashboard from "./auth/Dashboard";
 
 import "./App.css";
 
-// room listing page import
 import ListingPage from "./room_listing/listing_page";
 import LoginPage from "./components/LoginPage";
 import TenantSignup from "./components/TenantSignup";
@@ -36,27 +35,29 @@ function AppRoutes() {
 
   return (
     <Routes>
-      {/* Root — redirect to /home if logged in, else /login */}
+      {/* Root */}
       <Route
         path="/"
-        element={<Navigate to={user ? "/home" : "/login"} replace />}
+        element={<Navigate to={user ? "/dashboard" : "/login"} replace />}
       />
 
-      {/* Auth routes — redirect to /home if already logged in */}
+      {/* Auth routes — redirect to /dashboard if already logged in */}
       <Route
         path="/login"
-        element={user ? <Navigate to="/home" replace /> : <LoginPage />}
+        element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />}
       />
       <Route
         path="/signup/tenant"
-        element={user ? <Navigate to="/home" replace /> : <TenantSignup />}
+        element={user ? <Navigate to="/dashboard" replace /> : <TenantSignup />}
       />
       <Route
         path="/signup/landlord"
-        element={user ? <Navigate to="/home" replace /> : <LandlordSignup />}
+        element={
+          user ? <Navigate to="/dashboard" replace /> : <LandlordSignup />
+        }
       />
 
-      {/* Protected routes — redirect to /login if not logged in */}
+      {/* Protected routes */}
       <Route
         path="/dashboard"
         element={user ? <Dashboard /> : <Navigate to="/login" replace />}
