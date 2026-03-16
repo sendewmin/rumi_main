@@ -40,4 +40,9 @@ public class RoomFilterController {
                 city, country, minPrice, maxPrice, genderAllowed, roomStatus, pageable
         );
         return ResponseEntity.ok(results);
+        @GetMapping("/count")
+        public ResponseEntity<Long> getRoomCount() {
+            long count = roomFilterService.getTotalRoomCount();
+            return ResponseEntity.ok(count);
+        }
     }
