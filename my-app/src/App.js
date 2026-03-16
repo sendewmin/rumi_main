@@ -13,6 +13,7 @@ import Homepage from "./components/Homepage";
 function HomePage() {
   return (
     <div className="App">
+      {/* Redirects to homepage */}
       <Homepage />
     </div>
   );
