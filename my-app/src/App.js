@@ -15,15 +15,14 @@ import CategoryCarousel from "./components/CategoryCarousel";
 import PlaceScroller from "./components/PlaceScroller";
 import Home_statement from "./components/Home_statement";
 
+import "./App.css";
+import Homepage from "./components/Homepage";
+
 function HomePage() {
   return (
-    <>
-      <Hero />
-      <CategoryCarousel />
-      <Home_statement />
-      <PlaceScroller />
-      <ListingPage />
-    </>
+    <div className="App">
+      <Homepage />
+    </div>
   );
 }
 
