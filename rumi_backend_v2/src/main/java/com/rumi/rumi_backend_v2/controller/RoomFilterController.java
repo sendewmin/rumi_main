@@ -20,7 +20,7 @@ public class RoomFilterController {
     private RoomFilterService roomFilterService;
 
     @GetMapping("/search")
-    public ResponseEntity<Page<RoomFilterResponse>> searchRooms(
+    public ResponseEntity<?> searchRooms(
             @RequestParam(required = false) String city,
             @RequestParam(required = false) String country,
             @RequestParam(required = false) Integer minPrice,
@@ -30,10 +30,14 @@ public class RoomFilterController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
+        // Validate price range
+        if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
+            return ResponseEntity.badRequest().body("minPrice cannot be greater than maxPrice");
+        }
+
         Pageable pageable = PageRequest.of(page, size);
         Page<RoomFilterResponse> results = roomFilterService.filterRooms(
                 city, country, minPrice, maxPrice, genderAllowed, roomStatus, pageable
         );
         return ResponseEntity.ok(results);
     }
-}
