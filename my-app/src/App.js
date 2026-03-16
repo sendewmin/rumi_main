@@ -4,12 +4,10 @@ import Dashboard from "./auth/Dashboard";
 
 import "./App.css";
 
-import ListingPage from "./room_listing/listing_page";
 import LoginPage from "./components/LoginPage";
 import TenantSignup from "./components/TenantSignup";
 import LandlordSignup from "./components/LandlordSignup";
 import LandlordPage from "./user_roles/page/land_lord";
-
 import Homepage from "./components/Homepage";
 
 function HomePage() {
@@ -57,9 +55,10 @@ function AppRoutes() {
         path="/landlord"
         element={user ? <LandlordPage /> : <Navigate to="/login" replace />}
       />
-
-      {/* Public routes */}
-      <Route path="/home" element={<HomePage />} />
+      <Route
+        path="/home"
+        element={user ? <HomePage /> : <Navigate to="/login" replace />}
+      />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
