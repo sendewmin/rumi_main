@@ -2,10 +2,15 @@
   min-height: 100vh;
   background:
     radial-gradient(circle at 12% 8%, rgba(95, 163, 255, 0.2), transparent 28%),
-    radial-gradient(circle at 90% 92%, rgba(62, 128, 216, 0.14), transparent 24%),
+    radial-gradient(
+      circle at 90% 92%,
+      rgba(62, 128, 216, 0.14),
+      transparent 24%
+    ),
     linear-gradient(180deg, #f3f7fd 0%, #eef4ff 55%, #f7f9fc 100%);
   padding: 0.65rem;
-  font-family: 'Manrope', 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family:
+    "Manrope", "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   animation: shellShift 18s ease-in-out infinite alternate;
 }
 
@@ -23,27 +28,35 @@
 }
 
 .homepage-modern-container::before {
-  content: '';
+  content: "";
   position: absolute;
   width: 320px;
   height: 320px;
   top: -160px;
   right: -120px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, rgba(40, 124, 219, 0.16), transparent 65%);
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(40, 124, 219, 0.16),
+    transparent 65%
+  );
   pointer-events: none;
   animation: blobDrift 12s ease-in-out infinite;
 }
 
 .homepage-modern-container::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 260px;
   height: 260px;
   bottom: -150px;
   left: -90px;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, rgba(27, 95, 171, 0.13), transparent 66%);
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(27, 95, 171, 0.13),
+    transparent 66%
+  );
   pointer-events: none;
   animation: blobDrift 14s ease-in-out infinite reverse;
 }
@@ -117,7 +130,9 @@
   padding: 0.4rem 0.76rem;
   font-size: 0.82rem;
   font-weight: 700;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   opacity: 0;
   animation: fadeLift 420ms ease-out forwards;
   animation-delay: var(--chip-delay, 120ms);
@@ -199,13 +214,18 @@
 }
 
 .homepage-search-btn::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -42%;
   width: 30%;
   height: 100%;
-  background: linear-gradient(95deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  background: linear-gradient(
+    95deg,
+    transparent,
+    rgba(255, 255, 255, 0.5),
+    transparent
+  );
   transform: skewX(-18deg);
   animation: btnShine 2.6s ease-in-out infinite;
   z-index: -1;
@@ -224,7 +244,9 @@
   background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
   padding: 0.88rem 0.95rem;
   box-shadow: 0 8px 18px rgba(20, 57, 103, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   opacity: 0;
   animation: fadeLift 440ms ease-out forwards;
   animation-delay: var(--stat-delay, 160ms);
@@ -310,10 +332,16 @@
 
 @keyframes shellShift {
   from {
-    background-position: 0% 0%, 100% 100%, center;
+    background-position:
+      0% 0%,
+      100% 100%,
+      center;
   }
   to {
-    background-position: 6% 2%, 92% 98%, center;
+    background-position:
+      6% 2%,
+      92% 98%,
+      center;
   }
 }
 

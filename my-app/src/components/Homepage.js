@@ -7,6 +7,7 @@ import Home_statement from "./Home_statement";
 import "./HomepageModern.css";
 import { supabase } from "../auth/supabaseClient";
 import { useAuth } from "../auth/AuthContext";
+import Footer from "./Footer";
 
 const HomeStatement = Home_statement;
 
@@ -303,6 +304,7 @@ export default function Homepage() {
           <PlaceScroller />
         </div>
       </div>
+      <Footer />
     </section>
   );
 }
