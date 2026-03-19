@@ -21,10 +21,11 @@
   border-radius: 24px;
   border: 1px solid #d9e8ff;
   box-shadow: 0 24px 60px rgba(22, 61, 115, 0.12);
-  padding: 1rem;
+  padding: 0;
   position: relative;
   backdrop-filter: blur(3px);
   animation: containerIn 0.55s ease-out;
+  overflow: hidden;
 }
 
 .homepage-modern-container::before {
@@ -61,102 +62,12 @@
   animation: blobDrift 14s ease-in-out infinite reverse;
 }
 
-.homepage-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
-  background: linear-gradient(180deg, #f8fbff 0%, #f2f7ff 100%);
-  border: 1px solid #e0ebff;
-  border-radius: 18px;
-  padding: 0.95rem 1.05rem;
-  margin-bottom: 1rem;
-  animation: fadeLift 480ms ease-out;
+/* ── Inner content padding wrapper ── */
+.homepage-inner {
+  padding: 1rem;
 }
 
-.homepage-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.homepage-logo {
-  width: 46px;
-  height: 46px;
-  background: #ffffff;
-  border: 1px solid #dbe8ff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 6px 18px rgba(0, 74, 153, 0.12);
-}
-
-.homepage-logo-text {
-  color: #0f4f94;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.homepage-brand-title {
-  font-size: 1.08rem;
-  color: #0f2c57;
-  font-weight: 800;
-  margin: 0;
-}
-
-.homepage-brand-subtitle {
-  font-size: 0.83rem;
-  color: #51709b;
-  margin: 0.12rem 0 0;
-}
-
-.homepage-chip-row {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  flex-wrap: wrap;
-}
-
-.homepage-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.42rem;
-  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
-  border: 1px solid #d4e5ff;
-  border-radius: 999px;
-  color: #1c467d;
-  padding: 0.4rem 0.76rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-  opacity: 0;
-  animation: fadeLift 420ms ease-out forwards;
-  animation-delay: var(--chip-delay, 120ms);
-}
-
-.homepage-chip:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(22, 82, 150, 0.12);
-}
-
-.homepage-chip-icon {
-  width: 28px;
-  height: 20px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(180deg, #edf4ff 0%, #dfebff 100%);
-  color: #1f5ca8;
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-}
-
+/* ── Search ribbon ── */
 .homepage-search-ribbon {
   display: flex;
   align-items: center;
@@ -207,6 +118,7 @@
   position: relative;
   overflow: hidden;
   isolation: isolate;
+  transition: transform 0.2s ease;
 }
 
 .homepage-search-btn:hover {
@@ -231,6 +143,7 @@
   z-index: -1;
 }
 
+/* ── Stats grid ── */
 .homepage-stats-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -272,6 +185,7 @@
   font-weight: 600;
 }
 
+/* ── Section cards ── */
 .homepage-hero-wrap,
 .homepage-section-card {
   background: #ffffff;
@@ -286,7 +200,6 @@
 .homepage-hero-wrap {
   animation: fadeLift 620ms ease-out;
 }
-
 .homepage-section-card {
   animation: fadeLift 740ms ease-out;
 }
@@ -296,6 +209,141 @@
   box-shadow: 0 14px 28px rgba(17, 56, 109, 0.12);
 }
 
+.homepage-section-card {
+  padding: 1rem;
+}
+.homepage-statement-wrap {
+  padding: 1.4rem 1rem;
+}
+
+.homepage-section-title {
+  font-size: 1.02rem;
+  color: #123c72;
+  margin: 0 0 0.9rem;
+  letter-spacing: 0.2px;
+}
+
+/* ══════════════════════════════════════
+   NAVBAR
+══════════════════════════════════════ */
+.navbar-container {
+  padding: 10px 0;
+  background-color: #f7f9fc;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid #e0ebff;
+}
+
+.navbar {
+  max-width: 100%;
+  width: 95%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo-icon {
+  width: 160px;
+  height: auto;
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin-left: auto;
+  align-items: center;
+}
+
+.nav-links li {
+  margin: 0 18px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #1f2937;
+  padding: 10px 20px;
+  font-size: 18px;
+  border-radius: 25px;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+}
+
+.nav-links a:hover {
+  background-color: #e5e7eb;
+  color: #0d265a;
+}
+
+.nav-links a.active {
+  background-color: #dbeafe;
+  color: #0d265a;
+  font-weight: 600;
+}
+
+.hamburger {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  margin-left: 20px;
+}
+
+.hamburger span {
+  height: 3px;
+  width: 25px;
+  background: #1f2937;
+  margin: 4px 0;
+  border-radius: 2px;
+  transition: 0.3s;
+}
+
+.hamburger.active span:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(6px, -6px);
+}
+
+@media (max-width: 768px) {
+  .nav-links {
+    position: absolute;
+    top: 80px;
+    right: 10px;
+    background: #ffffff;
+    flex-direction: column;
+    width: 220px;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    display: none;
+    z-index: 999;
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .nav-links li {
+    margin: 12px 0;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+}
+
+/* ── Animations ── */
 @keyframes fadeLift {
   from {
     opacity: 0;
@@ -372,8 +420,6 @@
   .homepage-modern-container,
   .homepage-modern-container::before,
   .homepage-modern-container::after,
-  .homepage-topbar,
-  .homepage-chip,
   .homepage-search-ribbon,
   .homepage-search-pill,
   .homepage-search-btn::after,
@@ -386,21 +432,6 @@
   }
 }
 
-.homepage-section-card {
-  padding: 1rem;
-}
-
-.homepage-statement-wrap {
-  padding: 1.4rem 1rem;
-}
-
-.homepage-section-title {
-  font-size: 1.02rem;
-  color: #123c72;
-  margin: 0 0 0.9rem;
-  letter-spacing: 0.2px;
-}
-
 @media (max-width: 760px) {
   .homepage-shell {
     padding: 0.35rem;
@@ -408,15 +439,7 @@
 
   .homepage-modern-container {
     border-radius: 12px;
-    padding: 0.6rem;
-  }
-
-  .homepage-topbar {
-    border-radius: 12px;
-  }
-
-  .homepage-brand-title {
-    font-size: 0.95rem;
+    padding: 0;
   }
 
   .homepage-search-btn {
