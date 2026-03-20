@@ -1,5 +1,4 @@
 import React from "react";
-
 import Hero from './Hero';
 import CategoryCarousel from './CategoryCarousel';
 import PlaceScroller from './PlaceScroller';
@@ -8,81 +7,132 @@ import './HomepageModern.css';
 
 const HomeStatement = Home_statement;
 
-const quickSections = [
-  { label: 'Explore', icon: '01' },
-  { label: 'Types', icon: '02' },
-  { label: 'Cities', icon: '03' },
-  { label: 'Saved', icon: '04' }
-];
-
 const trustStats = [
-  { value: '12K+', label: 'Active listings' },
-  { value: '4.8/5', label: 'Tenant rating' },
-  { value: '120+', label: 'Neighborhoods' }
+  { value: '12K+', label: 'Active listings',  icon: '🏠' },
+  { value: '4.8★', label: 'Average rating',   icon: '⭐' },
+  { value: '120+', label: 'Neighborhoods',     icon: '📍' },
 ];
 
+const navLinks = ['Browse Rooms', 'Popular Areas', 'How it Works'];
 
 export default function Homepage() {
   return (
-    <section className="homepage-shell">
-      <div className="homepage-modern-container">
-        <header className="homepage-topbar">
-          <div className="homepage-brand">
-            <div className="homepage-logo"><span className="homepage-logo-text">RUMI</span></div>
+    <section className="hp-shell">
+      <div className="hp-container">
+
+        {/* ── Navbar ── */}
+        <header className="hp-navbar">
+          <div className="hp-brand">
+            <div className="hp-logo">
+              <span className="hp-logo-text">RUMI</span>
+            </div>
             <div>
-              <p className="homepage-brand-title">Rumi Rentals</p>
-              <p className="homepage-brand-subtitle">Find rooms that feel like home</p>
+              <p className="hp-brand-name">Rumi Rentals</p>
+              <p className="hp-brand-tag">Find rooms that feel like home</p>
             </div>
           </div>
 
-          <div className="homepage-chip-row" aria-label="Quick sections">
-            {quickSections.map((item, index) => (
-              <span
-                className="homepage-chip"
-                key={item.label}
-                style={{ '--chip-delay': `${index * 80 + 80}ms` }}
-              >
-                <span className="homepage-chip-icon">{item.icon}</span>
-                {item.label}
-              </span>
+          <nav className="hp-nav" aria-label="Primary navigation">
+            {navLinks.map(link => (
+              <span className="hp-nav-link" key={link}>{link}</span>
             ))}
-          </div>
+          </nav>
         </header>
 
-        <div className="homepage-search-ribbon" aria-label="Search controls preview">
-          <span className="homepage-search-heading">Quick Search</span>
-          <span className="homepage-search-pill" style={{ '--pill-delay': '120ms' }}>Where: Colombo</span>
-          <span className="homepage-search-pill" style={{ '--pill-delay': '180ms' }}>Type: Apartment</span>
-          <span className="homepage-search-pill" style={{ '--pill-delay': '240ms' }}>Budget: LKR 50k - 120k</span>
-          <button type="button" className="homepage-search-btn">Search</button>
-        </div>
-
-        <div className="homepage-hero-wrap">
+        {/* ── Hero ── */}
+        <div className="hp-hero-wrap">
           <Hero />
         </div>
 
-        <div className="homepage-stats-grid">
-          {trustStats.map((item, index) => (
-            <article className="homepage-stat-card" key={item.label} style={{ '--stat-delay': `${index * 100 + 140}ms` }}>
-              <p className="homepage-stat-value">{item.value}</p>
-              <p className="homepage-stat-label">{item.label}</p>
+        {/* ── Full-width search bar (booking.com style) ── */}
+        <div className="hp-search-wrap">
+          <form className="hp-search" onSubmit={e => e.preventDefault()} aria-label="Search for rooms">
+            <div className="hp-sf">
+              <label className="hp-sf-label" htmlFor="sf-city">📍 City</label>
+              <select className="hp-sf-select" id="sf-city">
+                <option>Colombo</option>
+                <option>Kandy</option>
+                <option>Galle</option>
+                <option>Negombo</option>
+                <option>Jaffna</option>
+              </select>
+            </div>
+
+            <div className="hp-sf-div" aria-hidden="true" />
+
+            <div className="hp-sf">
+              <label className="hp-sf-label" htmlFor="sf-type">🏠 Room type</label>
+              <select className="hp-sf-select" id="sf-type">
+                <option>Any type</option>
+                <option>Room</option>
+                <option>Annex</option>
+                <option>House</option>
+                <option>Apartment</option>
+                <option>Boarding</option>
+              </select>
+            </div>
+
+            <div className="hp-sf-div" aria-hidden="true" />
+
+            <div className="hp-sf">
+              <label className="hp-sf-label" htmlFor="sf-budget">💰 Budget (LKR)</label>
+              <select className="hp-sf-select" id="sf-budget">
+                <option>Any budget</option>
+                <option>Under 30k</option>
+                <option>30k – 60k</option>
+                <option>60k – 120k</option>
+                <option>120k+</option>
+              </select>
+            </div>
+
+            <button type="submit" className="hp-sf-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+                <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2.5" />
+                <path d="m16.5 16.5 3.5 3.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+              Search
+            </button>
+          </form>
+        </div>
+
+        {/* ── Trust stats ── */}
+        <div className="hp-stats-bar">
+          {trustStats.map((s, i) => (
+            <article
+              className="hp-stat"
+              key={s.label}
+              style={{ '--i': i }}
+            >
+              <span className="hp-stat-icon" aria-hidden="true">{s.icon}</span>
+              <strong className="hp-stat-value">{s.value}</strong>
+              <span className="hp-stat-label">{s.label}</span>
             </article>
           ))}
         </div>
 
-        <div className="homepage-section-card">
-          <h3 className="homepage-section-title">Browse by Category</h3>
+        {/* ── Browse by Category ── */}
+        <div className="hp-section">
+          <div className="hp-section-hd">
+            <h2 className="hp-section-title">Browse by Category</h2>
+            <p className="hp-section-desc">Find the type of space that suits your lifestyle</p>
+          </div>
           <CategoryCarousel />
         </div>
 
-        <div className="homepage-section-card homepage-statement-wrap">
+        {/* ── Statement banner ── */}
+        <div className="hp-statement">
           <HomeStatement />
         </div>
 
-        <div className="homepage-section-card">
-          <h3 className="homepage-section-title">Popular Areas</h3>
+        {/* ── Popular Areas ── */}
+        <div className="hp-section hp-section--last">
+          <div className="hp-section-hd">
+            <h2 className="hp-section-title">Popular Areas</h2>
+            <p className="hp-section-desc">Trending neighborhoods across Sri Lanka</p>
+          </div>
           <PlaceScroller />
         </div>
+
       </div>
     </section>
   );

@@ -1,55 +1,150 @@
+/* ── Place Scroller ── */
 
-.scroller-container {
+:root {
+  --sc-card-w:   318px;
+  --sc-card-gap:  14px;
+  --sc-unit: calc(var(--sc-card-w) + var(--sc-card-gap));
+  --sc-count: 4;
+}
+
+.scroller-wrap {
   width: 100%;
   overflow: hidden;
-  background: linear-gradient(180deg, #f6f9ff 0%, #f1f5fb 100%);
-  border-radius: 14px;
-  padding: 0.7rem 0;
+  border-radius: 12px;
 }
 
-.scroller-track-left{
+.scroller-track {
   display: flex;
-  width: calc(330px * 8);
-  animation: scroll 24s linear infinite;
+  gap: var(--sc-card-gap);
+  width: calc(var(--sc-unit) * var(--sc-count) * 2);
+  animation: scroller-run 26s linear infinite;
+  will-change: transform;
 }
 
-.scroller-image {
-  width: 330px;
-  height: 220px;
+.scroller-track:hover {
+  animation-play-state: paused;
+}
+
+/* ── Individual card ── */
+.scroller-card {
+  position: relative;
+  width: var(--sc-card-w);
+  height: 215px;
   border-radius: 14px;
-  margin-left: 12px;
-  margin-top: 0;
+  overflow: hidden;
+  flex-shrink: 0;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(0, 30, 80, 0.12);
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scroller-card:hover {
+  box-shadow: 0 8px 28px rgba(0, 30, 80, 0.22);
+}
+
+/* ── Photo ── */
+.scroller-img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border: 1px solid #d7e6ff;
-  box-shadow: 0 10px 22px rgba(16, 45, 87, 0.12);
+  object-position: center 68%;
+  display: block;
+  transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
 }
 
-@keyframes scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-1320px);
-  }
+.scroller-card:hover .scroller-img {
+  transform: scale(1.04);
 }
 
+/* ── City name tag ── */
+.scroller-name-tag {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 110px;
+  max-width: calc(100% - 20px);
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(0, 15, 55, 0.56);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* ── Subtle bottom gradient overlay – just enough for the badge ── */
+.scroller-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 45%;
+  background: linear-gradient(
+    to top,
+    rgba(0, 15, 55, 0.52) 0%,
+    transparent 100%
+  );
+  display: flex;
+  align-items: flex-end;
+  padding: 0.65rem 0.75rem;
+  transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scroller-card:hover .scroller-overlay {
+  background: linear-gradient(
+    to top,
+    rgba(0, 15, 55, 0.7) 0%,
+    transparent 100%
+  );
+}
+
+/* ── Listing count pill ── */
+.scroller-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.22rem 0.62rem;
+  border-radius: 999px;
+  letter-spacing: 0.15px;
+  white-space: nowrap;
+}
+
+/* ── Scroll animation – moves exactly one full set (4 cards) ── */
+@keyframes scroller-run {
+  0%   { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(calc(var(--sc-unit) * var(--sc-count) * -1), 0, 0); }
+}
+
+/* ── Tablet / Mobile ── */
 @media (max-width: 760px) {
-  .scroller-track-left {
-    width: calc(240px * 8);
+  :root {
+    --sc-card-w:   238px;
+    --sc-card-gap:  12px;
   }
 
-  .scroller-image {
-    width: 240px;
-    height: 165px;
-  }
-
-  @keyframes scroll {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(-960px);
-    }
-  }
+  .scroller-card { height: 168px; }
 }
 
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .scroller-track { animation: none !important; }
+}
