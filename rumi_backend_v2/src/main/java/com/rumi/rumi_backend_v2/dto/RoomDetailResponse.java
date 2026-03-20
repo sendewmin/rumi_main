@@ -25,7 +25,7 @@ public class RoomDetailResponse {
     private List<AmenityDto> amenities;
     private List<RuleDto> rules;
     private List<PaymentConditionDto> paymentConditions;
-    private Long renterId;
+    private String renterId;
     private List<String> imageUrls;
 
     @Data
