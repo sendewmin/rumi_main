@@ -27,7 +27,7 @@ const TenantSignup = () => {
   const handleGoogleSignIn = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin + "/dashboard" },
+      options: { redirectTo: window.location.origin + "/home" },
     });
     if (error) setMessage(error.message);
   };
@@ -42,34 +42,30 @@ const TenantSignup = () => {
       return setMessage("Password must be at least 6 characters.");
     if (!agreeToTerms)
       return setMessage("Please agree to the Terms & Conditions.");
+    if (!formData.firstName || !formData.lastName)
+      return setMessage("Please enter your first and last name.");
 
     setLoading(true);
 
     try {
-      // Create auth user
+      // Pass profile data as metadata — trigger creates profile row automatically
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
+        options: {
+          data: {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            age: parseInt(formData.age) || 0,
+            role: "Tenant",
+          },
+        },
       });
 
       if (error) return setMessage(error.message);
       if (!data.user) return setMessage("Could not create user. Try again.");
 
-      // Save profile with role = Tenant
-      const { error: profileError } = await supabase.from("profiles").upsert([
-        {
-          id: data.user.id,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          role: "Tenant",
-        },
-      ]);
-
-      if (profileError) return setMessage(profileError.message);
-
-      // Auto sign in
+      // Auto sign in after signup
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
@@ -79,7 +75,7 @@ const TenantSignup = () => {
         setMessage("Account created! Please log in.");
         navigate("/login");
       }
-      // else AuthContext detects session, App.js auto redirects to /dashboard
+      // AuthContext detects session, App.js redirects to /home
     } catch (err) {
       setMessage("Something went wrong. Please try again.");
     } finally {
