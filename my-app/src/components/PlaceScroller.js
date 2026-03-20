@@ -1,36 +1,40 @@
-
 import React from "react";
 import Kandy from "./Kandy.png";
 import Colombo from "./Colombo.png";
 import Galle from "./Galle.png";
-import Negambo from "./Negambo.png";
+import Negombo from "./Negombo.png";
 import "./PlaceScroller.css";
 
-
-const images = [
-  Kandy,
-  Colombo,
-  Galle,
-  Negambo
+const places = [
+  { img: Kandy,   name: 'Kandy',   listings: '1.2K+ listings' },
+  { img: Colombo, name: 'Colombo', listings: '4.8K+ listings' },
+  { img: Galle,   name: 'Galle',   listings: '900+ listings'  },
+  { img: Negombo, name: 'Negombo', listings: '1.1K+ listings' },
 ];
 
-const PlaceScroller = () => {
-  return (
-    
-    <div className="scroller-container">
-      <div className="scroller-track-left">
-        {images.map((img, index) => (
-          <img key={index} src={img} alt={`place-${index}`} className="scroller-image" />
-        ))}
-        
-        {/* Duplicate images */}
-        {images.map((img, index) => (
-          <img key={index + images.length} src={img} alt={`place-duplicate-${index}`} className="scroller-image" />
-        ))}
-      </div>
+// Duplicate for seamless infinite scroll loop
+const allPlaces = [...places, ...places];
+
+const PlaceScroller = () => (
+  <div className="scroller-wrap" aria-label="Popular areas">
+    <div className="scroller-track">
+      {allPlaces.map(({ img, name, listings }, i) => (
+        <div
+          key={i}
+          className="scroller-card"
+          role="button"
+          tabIndex={i < places.length ? 0 : -1}
+          aria-label={`Explore ${name} – ${listings}`}
+        >
+          <img src={img} alt={name} className="scroller-img" />
+          <div className="scroller-name-tag">{name}</div>
+          <div className="scroller-overlay">
+            <span className="scroller-badge">🏠 {listings}</span>
+          </div>
+        </div>
+      ))}
     </div>
-  );
-};
+  </div>
+);
 
 export default PlaceScroller;
-
