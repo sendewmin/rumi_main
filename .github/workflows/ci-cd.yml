@@ -26,7 +26,7 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install  # the exact dependency from the package-lock.js
+        run: npm ci  # the exact dependency from the package-lock.js
 
       - name: Run tests
         run: npm run test:ci
