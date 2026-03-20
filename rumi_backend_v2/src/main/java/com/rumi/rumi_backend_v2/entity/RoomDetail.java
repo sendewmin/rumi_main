@@ -57,6 +57,7 @@ public class RoomDetail {
         joinColumns=@JoinColumn(name="room_id"),  // here it will take the primary key from the RoomDetail entity
         inverseJoinColumns=@JoinColumn(name="amenity_id")  //here it will take the primary key from the Amenity entity
         )
+    @Builder.Default
     private Set<Amenity> amenities = new HashSet<>();  // here the amenities will be stored as set
 
     @ManyToMany
@@ -65,6 +66,7 @@ public class RoomDetail {
             joinColumns=@JoinColumn(name="room_id"),  // here it will take the primary key from the RoomDetail entity
             inverseJoinColumns=@JoinColumn(name="rule_id")  // here it will take the primary key from the Rule entity
     )
+    @Builder.Default
     private Set<Rule> rules = new HashSet<>();
 
     @ManyToMany
@@ -73,6 +75,7 @@ public class RoomDetail {
             joinColumns=@JoinColumn(name="room_id"),  // here it will take the primary key from the RoomDetail entity
             inverseJoinColumns=@JoinColumn(name="condition_id")  // here it will take the primary key from the PaymentCondition entity
     )
+    @Builder.Default
     private Set<PaymentCondition> paymentConditions = new HashSet<>();
 
     @Setter

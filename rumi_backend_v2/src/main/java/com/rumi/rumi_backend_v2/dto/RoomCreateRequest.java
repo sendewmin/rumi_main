@@ -24,6 +24,7 @@ public class RoomCreateRequest {
     private GenderAllowed genderAllowed;
     @Min(1)
     private int maxRoommates;
+    @Builder.Default
     private RoomStatus roomStatus = RoomStatus.AVAILABLE;
     @Valid
     @NotNull
