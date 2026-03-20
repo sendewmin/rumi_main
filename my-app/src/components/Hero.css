@@ -67,6 +67,36 @@
 
 
 
+/* Post Ad CTA */
+.hero-cta-row {
+  margin-top: 2rem;
+  opacity: 0;
+  animation: fadeUp 0.72s ease 0.5s forwards;
+}
+
+.hero-post-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  padding: 11px 26px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.hero-post-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+}
+
 @media (max-width: 900px) {
   .hero {
     flex-direction: column;

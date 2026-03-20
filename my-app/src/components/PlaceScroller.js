@@ -3,7 +3,7 @@ import React from "react";
 import Kandy from "./Kandy.png";
 import Colombo from "./Colombo.png";
 import Galle from "./Galle.png";
-import Negambo from "./Negambo.png";
+import Negombo from "./Negombo.png";
 import "./PlaceScroller.css";
 
 
@@ -11,7 +11,7 @@ const images = [
   Kandy,
   Colombo,
   Galle,
-  Negambo
+  Negombo
 ];
 
 const PlaceScroller = () => {
