@@ -1,19 +1,23 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 
 // This code is the help the jest to help understand the swiper js code and modules.
-jest.mock('swiper/react', () => ({
+// Mock Swiper components
+
+jest.mock('swiper/react/swiper-react', () => ({
   Swiper: ({ children }) => <div data-testid="swiper-mock">{children}</div>,
   SwiperSlide: ({ children }) => <div data-testid="swiper-slide-mock">{children}</div>,
 }));
 
+// Mock Swiper modules
 jest.mock('swiper/modules', () => ({
-  Navigation: () => null,
-  Pagination: () => null,
-  Scrollbar: () => null,
-  A11y: () => null,
+  Navigation: jest.fn(),
+  Pagination: jest.fn(),
+  Scrollbar: jest.fn(),
+  A11y: jest.fn(),
 }));
 
-// Mock all possible Swiper CSS paths
+// Mock Swiper CSS
 jest.mock('swiper/css', () => ({}));
 jest.mock('swiper/css/navigation', () => ({}));
 jest.mock('swiper/css/pagination', () => ({}));
