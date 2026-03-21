@@ -3,7 +3,7 @@ package com.rumi.rumi_backend_v2.service;
 import com.rumi.rumi_backend_v2.dto.RoomFilterResponse;
 import com.rumi.rumi_backend_v2.enums.GenderAllowed;
 import com.rumi.rumi_backend_v2.enums.RoomStatus;
-import com.rumi.rumi_backend_v2.repository.RoomFilterRepository;
+import com.rumi.rumi_backend_v2.respository.RoomFilterRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
