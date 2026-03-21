@@ -31,6 +31,7 @@ import {  MapPin, CalendarDays, MessageCircle, CircleDollarSign, ChevronRight, C
 import { User } from 'lucide-react';
 import Avatar from "@mui/material/Avatar";
 
+import Map_distance from "../map/Map_distance";
 
 function listing_page(){
     return(
@@ -509,7 +510,10 @@ function listing_page(){
 
 
             </Box>
+            <Map_distance />
         </div>
+
+        
     )
 }
 
