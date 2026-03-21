@@ -211,6 +211,9 @@
 }
 
 .rc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   background: #f0f5ff;
   color: #5e7ab0;
   font-size: 0.72rem;

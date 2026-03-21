@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { BedDouble, ShowerHead } from 'lucide-react';
 import './RoomCard.css';
 
 const formatPrice = (price) =>
@@ -105,10 +106,10 @@ const RoomCard = ({ room }) => {
           </div>
           <div className="rc-chips">
             <span className="rc-chip" aria-label={`${room.bedrooms} bedroom${room.bedrooms !== 1 ? 's' : ''}`}>
-              🛏 {room.bedrooms}
+              <BedDouble size={12} aria-hidden="true" /> {room.bedrooms}
             </span>
             <span className="rc-chip" aria-label={`${room.bathrooms} bathroom${room.bathrooms !== 1 ? 's' : ''}`}>
-              🚿 {room.bathrooms}
+              <ShowerHead size={12} aria-hidden="true" /> {room.bathrooms}
             </span>
           </div>
         </div>

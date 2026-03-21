@@ -1,5 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
+import {
+  Home, Star, MapPin, User, Building2,
+  Handshake, HelpCircle, ClipboardList,
+  LayoutDashboard, Settings, Wallet,
+  ChevronDown, X, Check, Search,
+} from "lucide-react";
 import Hero from './Hero';
 import CategoryCarousel from './CategoryCarousel';
 import PlaceScroller from './PlaceScroller';
@@ -11,32 +17,121 @@ import './HomepageModern.css';
 const HomeStatement = Home_statement;
 
 const trustStats = [
-  { value: '12K+', label: 'Active listings',  icon: '🏠' },
-  { value: '4.8★', label: 'Average rating',   icon: '⭐' },
-  { value: '120+', label: 'Neighborhoods',     icon: '📍' },
+  { value: '12K+', label: 'Active listings', Icon: Home },
+  { value: '4.8★', label: 'Average rating',  Icon: Star },
+  { value: '120+', label: 'Neighborhoods',    Icon: MapPin },
 ];
 
 const desktopNavLinks = [
-  { label: 'Browse Rooms',  to: '/rooms' },
-  { label: 'Share a Room',  to: '/share' },
-  { label: 'How it Works',  to: '/how-it-works' },
+  { label: 'Browse Rooms',    to: '/rooms' },
+  { label: 'Share a Room',    to: '/share' },
+  { label: 'How it Works',    to: '/how-it-works' },
   { label: 'List Your Space', to: '/signup/landlord' },
 ];
+
+const cityOptions   = [
+  'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Chilaw', 'Dambulla',
+  'Dehiwala', 'Galle', 'Jaffna', 'Kandy', 'Kalutara', 'Kurunegala',
+  'Matara', 'Monaragala', 'Negombo', 'Nuwara Eliya', 'Panadura', 'Peradeniya',
+  'Polonnaruwa', 'Ratnapura', 'Sri Jayawardenepura Kotte', 'Trincomalee',
+];
+const typeOptions   = ['Any type', 'Room', 'Annex', 'House', 'Apartment', 'Boarding'];
+const budgetOptions = ['Any budget', 'Under 30k', '30k – 60k', '60k – 120k', '120k+'];
+
+/* ── Scroll-reveal wrapper ── */
+const RevealSection = ({ children, className = '', delay = 0, style, ...rest }) => {
+  const ref     = useRef(null);
+  const [vis, setVis] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVis(true); observer.disconnect(); } },
+      { threshold: 0.07, rootMargin: '0px 0px -20px 0px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={`reveal-section${vis ? ' is-visible' : ''} ${className}`}
+      style={{ '--reveal-delay': `${delay}ms`, ...style }}
+      {...rest}
+    >
+      {children}
+    </div>
+  );
+};
+
+/* ── Custom search dropdown field ── */
+const SearchField = ({ icon: Icon, label, options, value, onChange, isOpen, onToggle }) => (
+  <div
+    className={`hp-sf${isOpen ? ' hp-sf--open' : ''}`}
+    onClick={onToggle}
+    role="combobox"
+    aria-expanded={isOpen}
+    aria-haspopup="listbox"
+    tabIndex={0}
+    onKeyDown={e => e.key === 'Enter' && onToggle()}
+  >
+    <label className="hp-sf-label">
+      <Icon size={10} aria-hidden="true" />
+      {' '}{label}
+    </label>
+    <div className="hp-sf-row">
+      <span className="hp-sf-value">{value}</span>
+      <ChevronDown
+        size={13}
+        className={`hp-sf-chevron${isOpen ? ' hp-sf-chevron--up' : ''}`}
+        aria-hidden="true"
+      />
+    </div>
+
+    {isOpen && (
+      <div className="hp-sf-dropdown" role="listbox" onClick={e => e.stopPropagation()}>
+        {options.map(opt => (
+          <button
+            key={opt}
+            className={`hp-sf-opt${value === opt ? ' hp-sf-opt--active' : ''}`}
+            role="option"
+            aria-selected={value === opt}
+            onClick={() => { onChange(opt); onToggle(); }}
+          >
+            {value === opt && <Check size={12} className="hp-sf-opt-check" aria-hidden="true" />}
+            {opt}
+          </button>
+        ))}
+      </div>
+    )}
+  </div>
+);
 
 export default function Homepage() {
   const [mobileOpen,  setMobileOpen]  = useState(false);
   const [signupOpen,  setSignupOpen]  = useState(false);
-  const signupRef = useRef(null);
+  const [activeField, setActiveField] = useState(null);
+  const [cityVal,     setCityVal]     = useState('Colombo');
+  const [typeVal,     setTypeVal]     = useState('Any type');
+  const [budgetVal,   setBudgetVal]   = useState('Any budget');
 
-  /* Close signup dropdown when clicking outside */
+  const signupRef = useRef(null);
+  const searchRef = useRef(null);
+
+  /* Close signup dropdown on outside click */
   useEffect(() => {
-    const handler = (e) => {
-      if (signupRef.current && !signupRef.current.contains(e.target)) {
-        setSignupOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    const h = (e) => { if (signupRef.current && !signupRef.current.contains(e.target)) setSignupOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
+
+  /* Close search dropdowns on outside click */
+  useEffect(() => {
+    const h = (e) => { if (searchRef.current && !searchRef.current.contains(e.target)) setActiveField(null); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
   }, []);
 
   /* Lock body scroll when mobile drawer is open */
@@ -44,6 +139,8 @@ export default function Homepage() {
     document.body.style.overflow = mobileOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [mobileOpen]);
+
+  const toggleField = (field) => setActiveField(prev => prev === field ? null : field);
 
   return (
     <section className="hp-shell">
@@ -68,9 +165,7 @@ export default function Homepage() {
           {/* Desktop navigation */}
           <nav className="hp-nav" aria-label="Primary navigation">
             {desktopNavLinks.map(link => (
-              <Link to={link.to} className="hp-nav-link" key={link.label}>
-                {link.label}
-              </Link>
+              <Link to={link.to} className="hp-nav-link" key={link.label}>{link.label}</Link>
             ))}
             <Link to="/popular-areas" className="hp-nav-link" onClick={e => {
               e.preventDefault();
@@ -93,15 +188,11 @@ export default function Homepage() {
                 aria-expanded={signupOpen}
               >
                 Sign Up
-                <svg
-                  width="10" height="7"
-                  viewBox="0 0 10 7"
-                  fill="none"
-                  aria-hidden="true"
+                <ChevronDown
+                  size={12}
                   className={`hp-chevron${signupOpen ? ' hp-chevron--up' : ''}`}
-                >
-                  <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                  aria-hidden="true"
+                />
               </button>
 
               {signupOpen && (
@@ -112,7 +203,9 @@ export default function Homepage() {
                     role="menuitem"
                     onClick={() => setSignupOpen(false)}
                   >
-                    <span className="hp-dropdown-icon">👤</span>
+                    <span className="hp-dropdown-icon">
+                      <User size={16} aria-hidden="true" />
+                    </span>
                     <span className="hp-dropdown-text">
                       <strong>Tenant</strong>
                       <span className="hp-dropdown-sub">Find your perfect room</span>
@@ -125,7 +218,9 @@ export default function Homepage() {
                     role="menuitem"
                     onClick={() => setSignupOpen(false)}
                   >
-                    <span className="hp-dropdown-icon">🏢</span>
+                    <span className="hp-dropdown-icon">
+                      <Building2 size={16} aria-hidden="true" />
+                    </span>
                     <span className="hp-dropdown-text">
                       <strong>Landlord</strong>
                       <span className="hp-dropdown-sub">List and manage properties</span>
@@ -141,9 +236,7 @@ export default function Homepage() {
               onClick={() => setMobileOpen(true)}
               aria-label="Open navigation menu"
             >
-              <span />
-              <span />
-              <span />
+              <span /><span /><span />
             </button>
           </div>
         </header>
@@ -157,10 +250,7 @@ export default function Homepage() {
             aria-modal="true"
             aria-label="Navigation menu"
           >
-            <div
-              className="hp-mobile-drawer"
-              onClick={e => e.stopPropagation()}
-            >
+            <div className="hp-mobile-drawer" onClick={e => e.stopPropagation()}>
               {/* Drawer header */}
               <div className="hp-drawer-hd">
                 <div className="hp-brand" style={{ gap: '0.5rem' }}>
@@ -174,23 +264,23 @@ export default function Homepage() {
                   onClick={() => setMobileOpen(false)}
                   aria-label="Close menu"
                 >
-                  ✕
+                  <X size={14} />
                 </button>
               </div>
 
               {/* Main nav */}
               <nav className="hp-mobile-nav" aria-label="Mobile navigation">
-                <Link to="/rooms"           className="hp-mob-link" onClick={() => setMobileOpen(false)}>
-                  <span className="hp-mob-icon">🏠</span> Browse Rooms
+                <Link to="/rooms" className="hp-mob-link" onClick={() => setMobileOpen(false)}>
+                  <span className="hp-mob-icon"><Home size={17} /></span> Browse Rooms
                 </Link>
-                <Link to="/share"           className="hp-mob-link" onClick={() => setMobileOpen(false)}>
-                  <span className="hp-mob-icon">🤝</span> Share a Room
+                <Link to="/share" className="hp-mob-link" onClick={() => setMobileOpen(false)}>
+                  <span className="hp-mob-icon"><Handshake size={17} /></span> Share a Room
                 </Link>
-                <Link to="/how-it-works"    className="hp-mob-link" onClick={() => setMobileOpen(false)}>
-                  <span className="hp-mob-icon">❓</span> How it Works
+                <Link to="/how-it-works" className="hp-mob-link" onClick={() => setMobileOpen(false)}>
+                  <span className="hp-mob-icon"><HelpCircle size={17} /></span> How it Works
                 </Link>
                 <Link to="/signup/landlord" className="hp-mob-link" onClick={() => setMobileOpen(false)}>
-                  <span className="hp-mob-icon">📋</span> List Your Space
+                  <span className="hp-mob-icon"><ClipboardList size={17} /></span> List Your Space
                 </Link>
                 <a
                   href="#popular-areas"
@@ -200,7 +290,7 @@ export default function Homepage() {
                     setTimeout(() => document.getElementById('popular-areas')?.scrollIntoView({ behavior: 'smooth' }), 200);
                   }}
                 >
-                  <span className="hp-mob-icon">📍</span> Popular Areas
+                  <span className="hp-mob-icon"><MapPin size={17} /></span> Popular Areas
                 </a>
               </nav>
 
@@ -215,10 +305,10 @@ export default function Homepage() {
               {/* Footer links */}
               <div className="hp-mob-footer">
                 <Link to="/dashboard/landlord" className="hp-mob-footer-link" onClick={() => setMobileOpen(false)}>
-                  📊 Landlord Dashboard
+                  <LayoutDashboard size={15} /> Landlord Dashboard
                 </Link>
                 <Link to="/admin" className="hp-mob-footer-link" onClick={() => setMobileOpen(false)}>
-                  ⚙️ Admin Console
+                  <Settings size={15} /> Admin Console
                 </Link>
               </div>
             </div>
@@ -230,90 +320,84 @@ export default function Homepage() {
           <Hero />
         </div>
 
-        {/* ── Full-width search bar (booking.com style) ── */}
-        <div className="hp-search-wrap">
+        {/* ── Search bar ── */}
+        <div className="hp-search-wrap" ref={searchRef}>
           <form className="hp-search" onSubmit={e => e.preventDefault()} aria-label="Search for rooms">
-            <div className="hp-sf">
-              <label className="hp-sf-label" htmlFor="sf-city">📍 City</label>
-              <select className="hp-sf-select" id="sf-city">
-                <option>Colombo</option>
-                <option>Kandy</option>
-                <option>Galle</option>
-                <option>Negombo</option>
-                <option>Jaffna</option>
-              </select>
-            </div>
+
+            <SearchField
+              icon={MapPin}
+              label="City"
+              options={cityOptions}
+              value={cityVal}
+              onChange={setCityVal}
+              isOpen={activeField === 'city'}
+              onToggle={() => toggleField('city')}
+            />
 
             <div className="hp-sf-div" aria-hidden="true" />
 
-            <div className="hp-sf">
-              <label className="hp-sf-label" htmlFor="sf-type">🏠 Room type</label>
-              <select className="hp-sf-select" id="sf-type">
-                <option>Any type</option>
-                <option>Room</option>
-                <option>Annex</option>
-                <option>House</option>
-                <option>Apartment</option>
-                <option>Boarding</option>
-              </select>
-            </div>
+            <SearchField
+              icon={Home}
+              label="Room type"
+              options={typeOptions}
+              value={typeVal}
+              onChange={setTypeVal}
+              isOpen={activeField === 'type'}
+              onToggle={() => toggleField('type')}
+            />
 
             <div className="hp-sf-div" aria-hidden="true" />
 
-            <div className="hp-sf">
-              <label className="hp-sf-label" htmlFor="sf-budget">💰 Budget (LKR)</label>
-              <select className="hp-sf-select" id="sf-budget">
-                <option>Any budget</option>
-                <option>Under 30k</option>
-                <option>30k – 60k</option>
-                <option>60k – 120k</option>
-                <option>120k+</option>
-              </select>
-            </div>
+            <SearchField
+              icon={Wallet}
+              label="Budget (LKR)"
+              options={budgetOptions}
+              value={budgetVal}
+              onChange={setBudgetVal}
+              isOpen={activeField === 'budget'}
+              onToggle={() => toggleField('budget')}
+            />
 
             <Link to="/rooms" className="hp-sf-btn">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
-                <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2.5" />
-                <path d="m16.5 16.5 3.5 3.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-              </svg>
+              <Search size={15} aria-hidden="true" style={{ flexShrink: 0 }} />
               Search
             </Link>
           </form>
         </div>
 
         {/* ── Trust stats ── */}
-        <div className="hp-stats-bar">
+        <RevealSection className="hp-stats-bar">
           {trustStats.map((s, i) => (
-            <article
-              className="hp-stat"
-              key={s.label}
-              style={{ '--i': i }}
-            >
-              <span className="hp-stat-icon" aria-hidden="true">{s.icon}</span>
+            <article className="hp-stat" key={s.label} style={{ '--i': i }}>
+              <span className="hp-stat-icon" aria-hidden="true">
+                <s.Icon size={18} />
+              </span>
               <strong className="hp-stat-value">{s.value}</strong>
               <span className="hp-stat-label">{s.label}</span>
             </article>
           ))}
-        </div>
+        </RevealSection>
 
         {/* ── Browse by Category ── */}
-        <div className="hp-section">
+        <RevealSection className="hp-section" delay={60}>
           <div className="hp-section-hd">
             <h2 className="hp-section-title">Browse by Category</h2>
             <p className="hp-section-desc">Find the type of space that suits your lifestyle</p>
           </div>
           <CategoryCarousel />
-        </div>
+        </RevealSection>
 
         {/* ── Featured Rooms ── */}
-        <div className="hp-section">
+        <RevealSection className="hp-section" delay={80}>
           <div className="hp-section-hd">
             <h2 className="hp-section-title">Featured Rooms</h2>
             <p className="hp-section-desc">Handpicked stays across Sri Lanka</p>
           </div>
           <div className="hp-rooms-grid">
-            {mockRooms.slice(0, 3).map(room => (
-              <RoomCard key={room.id} room={room} />
+            {mockRooms.slice(0, 3).map((room, i) => (
+              <div key={room.id} className="hp-card-reveal" style={{ '--card-i': i }}>
+                <RoomCard room={room} />
+              </div>
             ))}
           </div>
           <div className="hp-view-all-wrap">
@@ -324,21 +408,21 @@ export default function Homepage() {
               </svg>
             </Link>
           </div>
-        </div>
+        </RevealSection>
 
         {/* ── Statement banner ── */}
-        <div className="hp-statement">
+        <RevealSection className="hp-statement" delay={40}>
           <HomeStatement />
-        </div>
+        </RevealSection>
 
         {/* ── Popular Areas ── */}
-        <div className="hp-section hp-section--last" id="popular-areas">
+        <RevealSection className="hp-section hp-section--last" id="popular-areas" delay={60}>
           <div className="hp-section-hd">
             <h2 className="hp-section-title">Popular Areas</h2>
             <p className="hp-section-desc">Trending neighborhoods across Sri Lanka</p>
           </div>
           <PlaceScroller />
-        </div>
+        </RevealSection>
 
       </div>
     </section>

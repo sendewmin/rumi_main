@@ -4,7 +4,12 @@ import RoomCard from './RoomCard';
 import { mockRooms } from './mockRooms';
 import './BrowseRooms.css';
 
-const CITIES   = ['All Cities', 'Colombo', 'Kandy', 'Galle', 'Negombo'];
+const CITIES   = [
+  'All Cities', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Chilaw', 'Colombo',
+  'Dambulla', 'Dehiwala', 'Galle', 'Jaffna', 'Kandy', 'Kalutara', 'Kurunegala',
+  'Matara', 'Monaragala', 'Negombo', 'Nuwara Eliya', 'Panadura', 'Peradeniya',
+  'Polonnaruwa', 'Ratnapura', 'Sri Jayawardenepura Kotte', 'Trincomalee',
+];
 const TYPES    = ['All Types', 'Studio', 'Apartment', 'Annex', 'House', 'Boarding'];
 const BUDGETS  = [
   { label: 'Any Budget',   min: 0,      max: Infinity },
