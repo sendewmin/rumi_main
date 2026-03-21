@@ -28,7 +28,7 @@ public class RoomImageControllerTest {
     private SupabaseAuthService supabaseAuthService;
 
     @Test
-    void testUploadImageSuccess() throws Exception{
+    void testUploadImageSuccess() throws Exception {
         // Here we mock the image input a multipart image.
         MockMultipartFile file = new MockMultipartFile("image", "test.jpg", "image/jpeg", "fake-image".getBytes());
         // here we mock the bearer token
@@ -41,6 +41,17 @@ public class RoomImageControllerTest {
                 .andExpect(status().isCreated()) //here we check the status is created 200.
                 .andExpect(jsonPath("$.message").value("Room Image Added")); //here the response entity message we check
 
+    }
+
+    @Test
+    void testUploadImageNoToken() throws Exception{
+        // Here we mock the image input a multipart image.
+        MockMultipartFile file = new MockMultipartFile("image", "test.jpg", "image/jpeg", "fake-image".getBytes());
+
+        mockMvc.perform(
+                multipart("/api/rooms/1/images").file(file))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("Missing or invalid Authorization header"));
     }
 
 }
