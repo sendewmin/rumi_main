@@ -38,7 +38,7 @@ public class RoomImageServiceImpl implements RoomImageService {
 
         RoomDetail roomDetail=roomRepo.findByRoomId(roomId);  //Here we store the roomDetail the method is from RoomRepo
         if(roomDetail!=null){
-            // 2️⃣ Check role
+            // Check role
             User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
             System.out.println("Service imple user: "+ user);
             System.out.println("Service imple role t/f : " + user.getRole().equals(RoleName.RENTER));
