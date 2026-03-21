@@ -183,8 +183,6 @@ public class RoomImageServiceTest {
 
 
 
-
-
     @Test
     void testFetchRoomImageSuccessfully(){
         RoomImage roomImage01=RoomImage.builder().imageId(43L).room(room).imageUrl("url1").build();
