@@ -10,8 +10,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -39,10 +42,12 @@ public class RoomImageControllerTest {
                 // here we create the endpoint path with file and bearer token and room id in the request param
                 multipart("/api/rooms/1/images").file(file).header("Authorization", "Bearer valid-token"))
                 .andExpect(status().isCreated()) //here we check the status is created 200.
+                //.andDo(print())
                 .andExpect(jsonPath("$.message").value("Room Image Added")); //here the response entity message we check
 
     }
 
+    // HERE WE CHECK TEST AN ERROR CASE WHERE THE RENTER IS NOT AUTHORISED FOR ROOM IMAGE UPLOAD
     @Test
     void testUploadImageNoToken() throws Exception{
         // Here we mock the image input a multipart image.
@@ -52,6 +57,40 @@ public class RoomImageControllerTest {
                 multipart("/api/rooms/1/images").file(file))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("Missing or invalid Authorization header"));
+    }
+
+    // HERE WE HANDLE AN ERROR CASE WHERE THE USER TRY TO UPLOAD IMAGES BUT THE ROOM IS NOT FOUND.
+    @Test
+    void testUploadImageRoomNotFound() throws Exception{
+        MockMultipartFile file = new MockMultipartFile("image", "test.jpg", "image/jpeg", "fake-image".getBytes());
+        when(supabaseAuthService.getUserId("valid-token")).thenReturn("user123");
+        doThrow(new RuntimeException("Room not found"))
+                .when(roomImageServiceImpl)
+                .uploadRoomImages(anyLong(), anyList(), anyString());
+
+        mockMvc.perform(
+                multipart("/api/rooms/1/images").file(file).header("Authorization", "Bearer valid-token"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Room not found")); //here the response entity message we check
+
+    }
+
+    @Test
+    void testUploadImageUserNotBelongToRoom() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("image", "test.jpg", "image/jpeg", "fake-image".getBytes());
+        when(supabaseAuthService.getUserId("valid-token")).thenReturn("user123");
+
+        // here this runtime exception will be thrown when this method is called in the in this class.
+        doThrow(new RuntimeException("Only renters can upload images"))
+                .when(roomImageServiceImpl)
+                .uploadRoomImages(anyLong(), anyList(), anyString());
+
+        mockMvc.perform(
+                multipart("/api/rooms/1/images").file(file).header("Authorization", "Bearer valid-token"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("Only renters can upload images"));
+
+
     }
 
 }
