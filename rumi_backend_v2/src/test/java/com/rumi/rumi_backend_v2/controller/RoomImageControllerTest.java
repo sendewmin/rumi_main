@@ -1,5 +1,6 @@
 package com.rumi.rumi_backend_v2.controller;
 
+import com.rumi.rumi_backend_v2.dto.RoomImageDto;
 import com.rumi.rumi_backend_v2.service.impl.RoomImageServiceImpl;
 import com.rumi.rumi_backend_v2.util.SupabaseAuthService;
 import org.junit.jupiter.api.Test;
@@ -9,6 +10,9 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+
+import java.util.List;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doThrow;
@@ -91,6 +95,34 @@ public class RoomImageControllerTest {
                 .andExpect(jsonPath("$.error").value("Only renters can upload images"));
 
 
+    }
+
+    // HERE WE TEST THAT THE MOCK IMAGE URL CAN BE ACCESSED AT THIS SPECIFIC GET API ENDPOINT ACCORDING TO THE ROOM ID
+    @Test
+    void testFetchRoomImageSuccessfully() throws Exception {
+        List<RoomImageDto> mockList = List.of(
+                RoomImageDto.builder().imageId(1L).imageUrl("url1").build(),
+                RoomImageDto.builder().imageId(2L).imageUrl("url2").build()
+        );
+
+        // here if the room id is pass then this mocklist will be returned just for testing purpose.
+        when(roomImageServiceImpl.fetchRoomImages(1L)).thenReturn(mockList);
+
+        mockMvc.perform(get("/api/rooms/1/images"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].imageUrl").value("url1"));
+    }
+
+    @Test
+    void testFetchRoomImageRoomNotFound() throws Exception {
+        doThrow(new RuntimeException("Room not found"))
+                .when(roomImageServiceImpl)
+                .fetchRoomImages(anyLong());
+
+        mockMvc.perform(get("/api/rooms/1/images"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Room not found"));
     }
 
 }
