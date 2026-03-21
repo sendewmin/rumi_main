@@ -1,5 +1,10 @@
 import './App.css';
+<<<<<<< HEAD
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+=======
+import { BrowserRouter } from 'react-router-dom';
+
+>>>>>>> cdde3575d8027f692f6c47681af6c9ce7ffa2a61
 import Homepage from './components/Homepage';
 import LoginPage from './components/LoginPage';
 import TenantSignup from './components/TenantSignup';
