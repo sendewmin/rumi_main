@@ -55,7 +55,8 @@ public class RoomImageServiceTest {
     @BeforeEach
     void setUp() {
         userRenter= User.builder().supabaseUid("user123").role(RoleName.RENTER).build(); //Used builder to construct the User object as renter
-        room = RoomDetail.builder().roomId(1L).renter(userRenter).build(); // Used builder to construct the room and connect the renter to the room.
+        room = RoomDetail.builder().roomId(1L).renter(userRenter).build(); // Used builder to construct the room and connect the renter to the room .renter().
+
         userRenter02= User.builder().supabaseUid("user456").role(RoleName.RENTER).build();
         userRentee=User.builder().supabaseUid("user002").role(RoleName.RENTEE).build();
 
@@ -144,7 +145,20 @@ public class RoomImageServiceTest {
         }
     }
 
+    // HERE WE CHECK WHETHER THE IMAGE HAS PROPER CONTENT-TYPE.
+    @Test
+    void testUploadRoomImageInvalidFileType(){
+        MockMultipartFile file = new MockMultipartFile("image", "test.txt", "image", "fake-image".getBytes());
+        when(roomRepo.findByRoomId(1L)).thenReturn(room);
+        when(userRepo.findById("user123")).thenReturn(Optional.of(userRenter));
 
+        try{
+            roomImageServiceImpl.uploadRoomImages(1L,List.of(file),"user123");
+        }
+        catch (RuntimeException e){
+            assertEquals("Invalid image type: "+file.getContentType(),e.getMessage());
+        }
+    }
 
 
 
