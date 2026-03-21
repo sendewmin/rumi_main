@@ -1,5 +1,6 @@
 package com.rumi.rumi_backend_v2.service;
 
+import com.rumi.rumi_backend_v2.dto.RoomImageDto;
 import com.rumi.rumi_backend_v2.entity.RoomDetail;
 import com.rumi.rumi_backend_v2.entity.RoomImage;
 import com.rumi.rumi_backend_v2.entity.User;
@@ -181,7 +182,30 @@ public class RoomImageServiceTest {
 
 
     @Test
-    void testFetchRoomImage(){
+    void testFetchRoomImageSuccessfully(){
+        RoomImage roomImage01=RoomImage.builder().imageId(43L).room(room).imageUrl("url1").build();
+        RoomImage roomImage02=RoomImage.builder().imageId(47L).room(room).imageUrl("url2").build();
+        List<RoomImage> roomImagesList=List.of(roomImage01,roomImage02);
+        when(roomImageRepo.findByRoom_RoomId(1L)).thenReturn(roomImagesList);
+        when(roomRepo.existsById(1L)).thenReturn(true);
+
+        List<RoomImageDto>roomImageDtos= roomImageServiceImpl.fetchRoomImages(1L);
+
+        assertEquals("url1",roomImageDtos.get(0).getImageUrl());
+
+    }
+
+    @Test
+    void testFetchRoomImageRoomNotFound(){
+        when(roomRepo.existsById(3L)).thenReturn(false); //There is no room id with 3 registered.
+
+        try{
+            roomImageServiceImpl.fetchRoomImages(3L);
+        }
+        catch (RuntimeException e){
+            assertEquals("Room not found with id: 3",e.getMessage());
+            System.out.println(e.getMessage());
+        }
 
     }
 }
