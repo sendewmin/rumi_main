@@ -13,7 +13,6 @@ const RoomShareListing = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch all rooms when page loads
   useEffect(() => {
     fetchRooms({});
   }, []);
@@ -33,7 +32,6 @@ const RoomShareListing = () => {
   };
 
   const handleSearch = (filters) => {
-    // Convert budget to minPrice/maxPrice
     const converted = { ...filters };
     if (filters.budget === "below20000") {
       converted.maxPrice = 20000;
@@ -51,19 +49,21 @@ const RoomShareListing = () => {
     <>
       <Header />
       <ShareFilterBar onSearch={handleSearch} />
-      <main className="listing-container">
-        {loading ? (
-          <p style={{ textAlign: "center" }}>Loading rooms...</p>
-        ) : error ? (
-          <p style={{ textAlign: "center", color: "red" }}>{error}</p>
-        ) : filteredRooms.length > 0 ? (
-          filteredRooms.map((room) => (
-            <RoomShareCard key={room.roomId} room={room} />
-          ))
-        ) : (
-          <p style={{ textAlign: "center" }}>No rooms found</p>
-        )}
-      </main>
+      <div className="listing-wrapper">
+        <div className="room-list">
+          {loading ? (
+            <p style={{ textAlign: "center" }}>Loading rooms...</p>
+          ) : error ? (
+            <p style={{ textAlign: "center", color: "red" }}>{error}</p>
+          ) : filteredRooms.length > 0 ? (
+            filteredRooms.map((room) => (
+              <RoomShareCard key={room.roomId} room={room} />
+            ))
+          ) : (
+            <p style={{ textAlign: "center" }}>No rooms found</p>
+          )}
+        </div>
+      </div>
       <Footer />
     </>
   );
