@@ -1,47 +1,48 @@
+
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import RoomCard from './RoomCard';
 import { mockRooms } from './mockRooms';
+import Map from '../map/Map';
 import './BrowseRooms.css';
 
-const CITIES   = [
+const CITIES = [
   'All Cities', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Chilaw', 'Colombo',
   'Dambulla', 'Dehiwala', 'Galle', 'Jaffna', 'Kandy', 'Kalutara', 'Kurunegala',
   'Matara', 'Monaragala', 'Negombo', 'Nuwara Eliya', 'Panadura', 'Peradeniya',
   'Polonnaruwa', 'Ratnapura', 'Sri Jayawardenepura Kotte', 'Trincomalee',
 ];
-const TYPES    = ['All Types', 'Studio', 'Apartment', 'Annex', 'House', 'Boarding'];
-const BUDGETS  = [
-  { label: 'Any Budget',   min: 0,      max: Infinity },
-  { label: 'Under 30k',   min: 0,      max: 29999    },
-  { label: '30k – 60k',   min: 30000,  max: 60000    },
-  { label: '60k – 120k',  min: 60001,  max: 120000   },
-  { label: '120k+',       min: 120001, max: Infinity  },
+const TYPES   = ['All Types', 'Studio', 'Apartment', 'Annex', 'House', 'Boarding'];
+const BUDGETS = [
+  { label: 'Any Budget',  min: 0,      max: Infinity },
+  { label: 'Under 30k',  min: 0,      max: 29999    },
+  { label: '30k – 60k',  min: 30000,  max: 60000    },
+  { label: '60k – 120k', min: 60001,  max: 120000   },
+  { label: '120k+',      min: 120001, max: Infinity  },
 ];
-
 const SortOptions = ['Recommended', 'Price: Low → High', 'Price: High → Low', 'Top Rated'];
 
 export default function BrowseRooms() {
-  const [city,       setCity]       = useState('All Cities');
-  const [type,       setType]       = useState('All Types');
-  const [budgetIdx,  setBudgetIdx]  = useState(0);
-  const [onlyAvail,  setOnlyAvail]  = useState(false);
-  const [sort,       setSort]       = useState('Recommended');
+  const [city,        setCity]        = useState('All Cities');
+  const [type,        setType]        = useState('All Types');
+  const [budgetIdx,   setBudgetIdx]   = useState(0);
+  const [onlyAvail,   setOnlyAvail]   = useState(false);
+  const [sort,        setSort]        = useState('Recommended');
+  const [highlightId, setHighlightId] = useState(null);
+  const [showMap,     setShowMap]     = useState(false);
 
   const filtered = useMemo(() => {
     const { min, max } = BUDGETS[budgetIdx];
     let rooms = mockRooms.filter(r => {
       if (city !== 'All Cities' && r.city !== city) return false;
-      if (type !== 'All Types' && r.type !== type) return false;
-      if (r.price < min || r.price > max)           return false;
-      if (onlyAvail && !r.available)                return false;
+      if (type !== 'All Types' && r.type !== type)  return false;
+      if (r.price < min || r.price > max)            return false;
+      if (onlyAvail && !r.available)                 return false;
       return true;
     });
-
-    if (sort === 'Price: Low → High')  rooms = [...rooms].sort((a, b) => a.price - b.price);
-    if (sort === 'Price: High → Low')  rooms = [...rooms].sort((a, b) => b.price - a.price);
-    if (sort === 'Top Rated')          rooms = [...rooms].sort((a, b) => b.rating - a.rating);
-
+    if (sort === 'Price: Low → High') rooms = [...rooms].sort((a, b) => a.price - b.price);
+    if (sort === 'Price: High → Low') rooms = [...rooms].sort((a, b) => b.price - a.price);
+    if (sort === 'Top Rated')         rooms = [...rooms].sort((a, b) => b.rating - a.rating);
     return rooms;
   }, [city, type, budgetIdx, onlyAvail, sort]);
 
@@ -58,7 +59,7 @@ export default function BrowseRooms() {
   return (
     <div className="br-shell">
 
-      {/* ── Top bar ── */}
+      {/*  Top bar  */}
       <header className="br-topbar">
         <Link to="/" className="br-back-btn" aria-label="Back to home">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -78,90 +79,119 @@ export default function BrowseRooms() {
         </div>
       </header>
 
-      <main className="br-main">
-        {/* ── Page title ── */}
-        <div className="br-page-hd">
-          <h1 className="br-page-title">Browse Rooms</h1>
-          <p className="br-page-sub">Find verified rooms across Sri Lanka</p>
-        </div>
+      {/*  Page body  */}
+      <div className="br-body">
 
-        {/* ── Filter bar ── */}
-        <div className="br-filters" role="search" aria-label="Filter rooms">
+        {/*  Main content  */}
+        <main className={`br-main ${showMap ? 'br-main--shrunk' : ''}`}>
 
-          {/* City */}
-          <div className="br-filter-group">
-            <label className="br-filter-label" htmlFor="br-city">📍 City</label>
-            <select id="br-city" className="br-select" value={city} onChange={e => setCity(e.target.value)}>
-              {CITIES.map(c => <option key={c}>{c}</option>)}
-            </select>
+          <div className="br-page-hd">
+            <h1 className="br-page-title">Browse Rooms</h1>
+            <p className="br-page-sub">Find verified rooms across Sri Lanka</p>
           </div>
 
-          {/* Type */}
-          <div className="br-filter-group">
-            <label className="br-filter-label" htmlFor="br-type">🏠 Type</label>
-            <select id="br-type" className="br-select" value={type} onChange={e => setType(e.target.value)}>
-              {TYPES.map(t => <option key={t}>{t}</option>)}
-            </select>
+          {/* Filter bar */}
+          <div className="br-filters" role="search" aria-label="Filter rooms">
+            <div className="br-filter-group">
+              <label className="br-filter-label" htmlFor="br-city">📍 City</label>
+              <select id="br-city" className="br-select" value={city} onChange={e => setCity(e.target.value)}>
+                {CITIES.map(c => <option key={c}>{c}</option>)}
+              </select>
+            </div>
+
+            <div className="br-filter-group">
+              <label className="br-filter-label" htmlFor="br-type">🏠 Type</label>
+              <select id="br-type" className="br-select" value={type} onChange={e => setType(e.target.value)}>
+                {TYPES.map(t => <option key={t}>{t}</option>)}
+              </select>
+            </div>
+
+            <div className="br-filter-group">
+              <label className="br-filter-label" htmlFor="br-budget">💰 Budget</label>
+              <select id="br-budget" className="br-select" value={budgetIdx} onChange={e => setBudgetIdx(Number(e.target.value))}>
+                {BUDGETS.map((b, i) => <option key={b.label} value={i}>{b.label}</option>)}
+              </select>
+            </div>
+
+            <div className="br-filter-group">
+              <label className="br-filter-label" htmlFor="br-sort">↕️ Sort</label>
+              <select id="br-sort" className="br-select" value={sort} onChange={e => setSort(e.target.value)}>
+                {SortOptions.map(s => <option key={s}>{s}</option>)}
+              </select>
+            </div>
+
+            <label className="br-avail-check">
+              <input type="checkbox" checked={onlyAvail} onChange={e => setOnlyAvail(e.target.checked)} className="br-checkbox" />
+              Available only
+            </label>
+
+            {hasFilters && (
+              <button className="br-clear-btn" onClick={clearFilters}>✕ Clear</button>
+            )}
           </div>
 
-          {/* Budget */}
-          <div className="br-filter-group">
-            <label className="br-filter-label" htmlFor="br-budget">💰 Budget</label>
-            <select id="br-budget" className="br-select" value={budgetIdx} onChange={e => setBudgetIdx(Number(e.target.value))}>
-              {BUDGETS.map((b, i) => <option key={b.label} value={i}>{b.label}</option>)}
-            </select>
+          {/* Results count */}
+          <div className="br-results-hd">
+            <p className="br-results-count">
+              <strong>{filtered.length}</strong> room{filtered.length !== 1 ? 's' : ''} found
+            </p>
           </div>
 
-          {/* Sort */}
-          <div className="br-filter-group">
-            <label className="br-filter-label" htmlFor="br-sort">↕️ Sort</label>
-            <select id="br-sort" className="br-select" value={sort} onChange={e => setSort(e.target.value)}>
-              {SortOptions.map(s => <option key={s}>{s}</option>)}
-            </select>
-          </div>
+          {/* Room grid */}
+          {filtered.length > 0 ? (
+            <div className="br-grid">
+              {filtered.map(room => (
+                <RoomCard
+                  key={room.id}
+                  room={room}
+                  onMouseEnter={() => setHighlightId(room.id)}
+                  onMouseLeave={() => setHighlightId(null)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="br-empty">
+              <div className="br-empty-icon">🔍</div>
+              <h3 className="br-empty-title">No rooms found</h3>
+              <p className="br-empty-sub">Try adjusting your filters to see more results.</p>
+              <button className="br-empty-btn" onClick={clearFilters}>Clear Filters</button>
+            </div>
+          )}
+        </main>
 
-          {/* Available only */}
-          <label className="br-avail-check">
-            <input
-              type="checkbox"
-              checked={onlyAvail}
-              onChange={e => setOnlyAvail(e.target.checked)}
-              className="br-checkbox"
-            />
-            Available only
-          </label>
+        {/*  Map panel */}
+        <div className={`br-map-panel ${showMap ? 'br-map-panel--open' : ''}`}>
 
-          {/* Clear filters */}
-          {hasFilters && (
-            <button className="br-clear-btn" onClick={clearFilters}>
-              ✕ Clear
-            </button>
+          {/*  close button */}
+          <button
+            className="br-map-close-btn"
+            onClick={() => setShowMap(false)}
+            aria-label="Hide map"
+          >
+            <span className="br-map-close-arrow">➤</span>
+          </button>
+
+          {/* Only mount map when open */}
+          {showMap && (
+            <div className="br-map-inner">
+              <Map locations={filtered} highlightId={highlightId} />
+            </div>
           )}
         </div>
 
-        {/* ── Results header ── */}
-        <div className="br-results-hd">
-          <p className="br-results-count">
-            <strong>{filtered.length}</strong> room{filtered.length !== 1 ? 's' : ''} found
-          </p>
-        </div>
+      </div>
 
-        {/* ── Room grid ── */}
-        {filtered.length > 0 ? (
-          <div className="br-grid">
-            {filtered.map(room => (
-              <RoomCard key={room.id} room={room} />
-            ))}
-          </div>
-        ) : (
-          <div className="br-empty">
-            <div className="br-empty-icon">🔍</div>
-            <h3 className="br-empty-title">No rooms found</h3>
-            <p className="br-empty-sub">Try adjusting your filters to see more results.</p>
-            <button className="br-empty-btn" onClick={clearFilters}>Clear Filters</button>
-          </div>
-        )}
-      </main>
+      {/*  Half-circle open button  */}
+      {!showMap && (
+        <button
+          className="br-globe-btn"
+          onClick={() => setShowMap(true)}
+          aria-label="Show map"
+        >
+          <span className="br-globe-icon">🌍</span>
+        </button>
+      )}
+
     </div>
   );
 }
