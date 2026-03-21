@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import Hero from './Hero';
 import CategoryCarousel from './CategoryCarousel';
 import PlaceScroller from './PlaceScroller';
 import Home_statement from './Home_statement';
+import RoomCard from './RoomCard';
+import { mockRooms } from './mockRooms';
 import './HomepageModern.css';
 
 const HomeStatement = Home_statement;
@@ -13,31 +16,214 @@ const trustStats = [
   { value: '120+', label: 'Neighborhoods',     icon: '📍' },
 ];
 
-const navLinks = ['Browse Rooms', 'Popular Areas', 'How it Works'];
+const desktopNavLinks = [
+  { label: 'Browse Rooms',  to: '/rooms' },
+  { label: 'Share a Room',  to: '/share' },
+  { label: 'How it Works',  to: '/how-it-works' },
+  { label: 'List Your Space', to: '/signup/landlord' },
+];
 
 export default function Homepage() {
+  const [mobileOpen,  setMobileOpen]  = useState(false);
+  const [signupOpen,  setSignupOpen]  = useState(false);
+  const signupRef = useRef(null);
+
+  /* Close signup dropdown when clicking outside */
+  useEffect(() => {
+    const handler = (e) => {
+      if (signupRef.current && !signupRef.current.contains(e.target)) {
+        setSignupOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  /* Lock body scroll when mobile drawer is open */
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileOpen]);
+
   return (
     <section className="hp-shell">
       <div className="hp-container">
 
-        {/* ── Navbar ── */}
+        {/* ══ Navbar ══ */}
         <header className="hp-navbar">
-          <div className="hp-brand">
-            <div className="hp-logo">
-              <span className="hp-logo-text">RUMI</span>
+
+          {/* Brand */}
+          <Link to="/" className="hp-brand-link" aria-label="Rumi Rentals home">
+            <div className="hp-brand">
+              <div className="hp-logo">
+                <span className="hp-logo-text">RUMI</span>
+              </div>
+              <div>
+                <p className="hp-brand-name">Rumi Rentals</p>
+                <p className="hp-brand-tag">Find rooms that feel like home</p>
+              </div>
             </div>
-            <div>
-              <p className="hp-brand-name">Rumi Rentals</p>
-              <p className="hp-brand-tag">Find rooms that feel like home</p>
+          </Link>
+
+          {/* Desktop navigation */}
+          <nav className="hp-nav" aria-label="Primary navigation">
+            {desktopNavLinks.map(link => (
+              <Link to={link.to} className="hp-nav-link" key={link.label}>
+                {link.label}
+              </Link>
+            ))}
+            <Link to="/popular-areas" className="hp-nav-link" onClick={e => {
+              e.preventDefault();
+              document.getElementById('popular-areas')?.scrollIntoView({ behavior: 'smooth' });
+            }}>
+              Popular Areas
+            </Link>
+          </nav>
+
+          {/* Auth group */}
+          <div className="hp-auth-group">
+            <Link to="/login" className="hp-signin-btn">Sign In</Link>
+
+            {/* Sign Up dropdown */}
+            <div className="hp-signup-wrap" ref={signupRef}>
+              <button
+                className="hp-cta-btn"
+                onClick={() => setSignupOpen(v => !v)}
+                aria-haspopup="true"
+                aria-expanded={signupOpen}
+              >
+                Sign Up
+                <svg
+                  width="10" height="7"
+                  viewBox="0 0 10 7"
+                  fill="none"
+                  aria-hidden="true"
+                  className={`hp-chevron${signupOpen ? ' hp-chevron--up' : ''}`}
+                >
+                  <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+
+              {signupOpen && (
+                <div className="hp-signup-dropdown" role="menu">
+                  <Link
+                    to="/signup/tenant"
+                    className="hp-dropdown-item"
+                    role="menuitem"
+                    onClick={() => setSignupOpen(false)}
+                  >
+                    <span className="hp-dropdown-icon">👤</span>
+                    <span className="hp-dropdown-text">
+                      <strong>Tenant</strong>
+                      <span className="hp-dropdown-sub">Find your perfect room</span>
+                    </span>
+                  </Link>
+                  <div className="hp-dropdown-divider" />
+                  <Link
+                    to="/signup/landlord"
+                    className="hp-dropdown-item"
+                    role="menuitem"
+                    onClick={() => setSignupOpen(false)}
+                  >
+                    <span className="hp-dropdown-icon">🏢</span>
+                    <span className="hp-dropdown-text">
+                      <strong>Landlord</strong>
+                      <span className="hp-dropdown-sub">List and manage properties</span>
+                    </span>
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile hamburger */}
+            <button
+              className="hp-hamburger"
+              onClick={() => setMobileOpen(true)}
+              aria-label="Open navigation menu"
+            >
+              <span />
+              <span />
+              <span />
+            </button>
+          </div>
+        </header>
+
+        {/* ══ Mobile Overlay + Drawer ══ */}
+        {mobileOpen && (
+          <div
+            className="hp-mobile-overlay"
+            onClick={() => setMobileOpen(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation menu"
+          >
+            <div
+              className="hp-mobile-drawer"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Drawer header */}
+              <div className="hp-drawer-hd">
+                <div className="hp-brand" style={{ gap: '0.5rem' }}>
+                  <div className="hp-logo" style={{ width: 36, height: 36 }}>
+                    <span className="hp-logo-text">RUMI</span>
+                  </div>
+                  <p className="hp-brand-name">Rumi Rentals</p>
+                </div>
+                <button
+                  className="hp-drawer-close"
+                  onClick={() => setMobileOpen(false)}
+                  aria-label="Close menu"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Main nav */}
+              <nav className="hp-mobile-nav" aria-label="Mobile navigation">
+                <Link to="/rooms"           className="hp-mob-link" onClick={() => setMobileOpen(false)}>
+                  <span className="hp-mob-icon">🏠</span> Browse Rooms
+                </Link>
+                <Link to="/share"           className="hp-mob-link" onClick={() => setMobileOpen(false)}>
+                  <span className="hp-mob-icon">🤝</span> Share a Room
+                </Link>
+                <Link to="/how-it-works"    className="hp-mob-link" onClick={() => setMobileOpen(false)}>
+                  <span className="hp-mob-icon">❓</span> How it Works
+                </Link>
+                <Link to="/signup/landlord" className="hp-mob-link" onClick={() => setMobileOpen(false)}>
+                  <span className="hp-mob-icon">📋</span> List Your Space
+                </Link>
+                <a
+                  href="#popular-areas"
+                  className="hp-mob-link"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    setTimeout(() => document.getElementById('popular-areas')?.scrollIntoView({ behavior: 'smooth' }), 200);
+                  }}
+                >
+                  <span className="hp-mob-icon">📍</span> Popular Areas
+                </a>
+              </nav>
+
+              {/* Auth section */}
+              <div className="hp-mob-auth">
+                <p className="hp-mob-auth-label">Your Account</p>
+                <Link to="/login"           className="hp-mob-signin"  onClick={() => setMobileOpen(false)}>Sign In</Link>
+                <Link to="/signup/tenant"   className="hp-mob-signup"  onClick={() => setMobileOpen(false)}>Sign Up as Tenant</Link>
+                <Link to="/signup/landlord" className="hp-mob-signup2" onClick={() => setMobileOpen(false)}>Sign Up as Landlord</Link>
+              </div>
+
+              {/* Footer links */}
+              <div className="hp-mob-footer">
+                <Link to="/dashboard/landlord" className="hp-mob-footer-link" onClick={() => setMobileOpen(false)}>
+                  📊 Landlord Dashboard
+                </Link>
+                <Link to="/admin" className="hp-mob-footer-link" onClick={() => setMobileOpen(false)}>
+                  ⚙️ Admin Console
+                </Link>
+              </div>
             </div>
           </div>
-
-          <nav className="hp-nav" aria-label="Primary navigation">
-            {navLinks.map(link => (
-              <span className="hp-nav-link" key={link}>{link}</span>
-            ))}
-          </nav>
-        </header>
+        )}
 
         {/* ── Hero ── */}
         <div className="hp-hero-wrap">
@@ -85,13 +271,13 @@ export default function Homepage() {
               </select>
             </div>
 
-            <button type="submit" className="hp-sf-btn">
+            <Link to="/rooms" className="hp-sf-btn">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
                 <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2.5" />
                 <path d="m16.5 16.5 3.5 3.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
               </svg>
               Search
-            </button>
+            </Link>
           </form>
         </div>
 
@@ -119,13 +305,34 @@ export default function Homepage() {
           <CategoryCarousel />
         </div>
 
+        {/* ── Featured Rooms ── */}
+        <div className="hp-section">
+          <div className="hp-section-hd">
+            <h2 className="hp-section-title">Featured Rooms</h2>
+            <p className="hp-section-desc">Handpicked stays across Sri Lanka</p>
+          </div>
+          <div className="hp-rooms-grid">
+            {mockRooms.slice(0, 3).map(room => (
+              <RoomCard key={room.id} room={room} />
+            ))}
+          </div>
+          <div className="hp-view-all-wrap">
+            <Link to="/rooms" className="hp-view-all-btn">
+              View All Rooms
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </Link>
+          </div>
+        </div>
+
         {/* ── Statement banner ── */}
         <div className="hp-statement">
           <HomeStatement />
         </div>
 
         {/* ── Popular Areas ── */}
-        <div className="hp-section hp-section--last">
+        <div className="hp-section hp-section--last" id="popular-areas">
           <div className="hp-section-hd">
             <h2 className="hp-section-title">Popular Areas</h2>
             <p className="hp-section-desc">Trending neighborhoods across Sri Lanka</p>
