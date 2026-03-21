@@ -509,6 +509,8 @@ function listing_page(){
 
 
             </Box>
+
+            <Map_distance />
         </div>
     )
 }
