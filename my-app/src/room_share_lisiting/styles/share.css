@@ -1,8 +1,24 @@
-.listing-container {
-  padding: 120px;
+/* Main horizontal layout */
+.listing-wrapper {
+  display: flex;           
+  gap: 20px;
+  padding: 20px 120px;
   background: #f8fafc;
+  height: 80vh;            
 }
 
+/* Vertical scrollable room list */
+.room-list {
+  flex: 1;              
+  display: flex;
+  flex-direction: column;  
+  overflow-y: auto;        
+  max-height: 100%;
+  padding-right: 10px;
+  scrollbar-width: none;
+}
+
+/* Individual room card */
 .room-card {
   display: flex;
   background: white;
@@ -10,23 +26,25 @@
   border-radius: 25px;
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  cursor: pointer;
 }
 
+/* Room image */
 .room-img {
-  width: 350px;
-  height: 250px;
-  margin: 80px;
+  width: 200px;
+  height: 150px;
   border-radius: 20px;
   object-fit: cover;
+  margin: 16px;
 }
 
+/* Room info section */
 .room-info {
   padding: 16px;
   flex: 1;
-  margin: 70px;
-  margin-right: -600px;
 }
 
+/* Room details styling */
 .location {
   color: #2563eb;
   font-size: 14px;
@@ -50,4 +68,69 @@
   border: none;
   border-radius: 20px;
   cursor: pointer;
+}
+
+.map-container {
+  flex: 1;
+  height: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+
+  transform: translateX(100%); 
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Show map */
+.map-container.show {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Map animation */
+.map-container {
+  flex: 1;
+  height: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+
+  transform: translateX(100%); 
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Show map */
+.map-container.show {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* toggle button */
+.toggle-map-btn {
+  position: fixed;
+  top: 50%;           
+  right: 0;           
+  transform: translateY(-50%);
+  width: 50px;       
+  height: 100px;      
+  background: #00D2F1;
+  color: white;
+  border: none;
+  border-radius: 50% 0 0 50%; 
+  cursor: pointer;
+  z-index: 1000;
+  font-size: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  transition: background 0.2s ease;
+}
+
+.toggle-map-btn:hover {
+  background: #0564d4;
 }
