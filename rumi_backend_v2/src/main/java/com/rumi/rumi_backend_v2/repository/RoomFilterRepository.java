@@ -1,9 +1,6 @@
 package com.rumi.rumi_backend_v2.repository;
 
-import com.rumi.rumi_backend_v2.dto.RoomFilterResponse;
 import com.rumi.rumi_backend_v2.entity.RoomDetail;
-import com.rumi.rumi_backend_v2.enums.GenderAllowed;
-import com.rumi.rumi_backend_v2.enums.RoomStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,38 +11,27 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface RoomFilterRepository extends JpaRepository<RoomDetail, Long> {
 
-    @Query("""
-    SELECT new com.rumi.rumi_backend_v2.dto.RoomFilterResponse(
-        r.roomId,
-        r.roomTitle,
-        r.roomDescription,
-        r.genderAllowed,
-        r.roomStatus,
-        r.maxRoommates,
-        a.city,
-        a.country,
-        a.addressLine,
-        p.amount,
-        p.billingCycle
-    )
-    FROM RoomDetail r
-    JOIN Address a ON a.room = r
-    JOIN RoomPrice p ON p.room = r
-    WHERE (:city IS NULL OR LOWER(a.city) = LOWER(:city))
-    AND (:country IS NULL OR LOWER(a.country) = LOWER(:country))
-    AND (:minPrice IS NULL OR p.amount >= :minPrice)
-    AND (:maxPrice IS NULL OR p.amount <= :maxPrice)
-    AND (:genderAllowed IS NULL OR r.genderAllowed = :genderAllowed)
-    AND (:roomStatus IS NULL OR r.roomStatus = :roomStatus)
-""")
-
-    Page<RoomFilterResponse> filterRooms(
+    @Query(value = """
+        SELECT rd.room_id, rd.room_title, rd.room_description, rd.gender_allowed,
+               rd.room_status, rd.max_roommates, a.city, a.country, a.address_line,
+               rp.amount, rp.billing_cycle
+        FROM room_detail rd
+        JOIN address a ON a.room_id = rd.room_id
+        JOIN room_price rp ON rp.room_id = rd.room_id
+        WHERE (:city IS NULL OR a.city = :city)
+        AND (:country IS NULL OR a.country = :country)
+        AND (:minPrice IS NULL OR rp.amount >= CAST(:minPrice AS INTEGER))
+        AND (:maxPrice IS NULL OR rp.amount <= CAST(:maxPrice AS INTEGER))
+        AND (:genderAllowed IS NULL OR rd.gender_allowed = CAST(:genderAllowed AS gender_allowed))
+        AND (:roomStatus IS NULL OR rd.room_status = CAST(:roomStatus AS room_status))
+    """, nativeQuery = true)
+    Page<Object[]> filterRoomsNative(
             @Param("city") String city,
             @Param("country") String country,
             @Param("minPrice") Integer minPrice,
             @Param("maxPrice") Integer maxPrice,
-            @Param("genderAllowed") GenderAllowed genderAllowed,
-            @Param("roomStatus") RoomStatus roomStatus,
+            @Param("genderAllowed") String genderAllowed,
+            @Param("roomStatus") String roomStatus,
             Pageable pageable
     );
 }
