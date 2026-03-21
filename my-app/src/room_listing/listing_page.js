@@ -31,12 +31,16 @@ import {  MapPin, CalendarDays, MessageCircle, CircleDollarSign, ChevronRight, C
 import { User } from 'lucide-react';
 import Avatar from "@mui/material/Avatar";
 import RatingStars from "../components/rating_system/component/ratingStars";
+import RateRoom from "../components/rating_system/component/rateRoom";
+import RatingDisplay from "../components/rating_system/component/ratingDisplay";
 import { useState } from "react";
 
 
 function ListingPage(){
-    const [rating, setRating] = useState(4.2);
-    const [showRatingInput, setShowRatingInput] = useState(false);
+    // TODO: Replace hardcoded roomId and userId with actual values from route params and auth context
+    const roomId = 1;  // Should come from useParams() or context
+    const userId = 1;  // Should come from auth context
+    
     return(
 
         <div>
@@ -126,49 +130,26 @@ function ListingPage(){
                                     <Grid item>
                                         <Typography variant='caption' sx={{display:'flex',gap:0.2}}><MapPin size={15}/>Colombo, City Center</Typography>
                                     </Grid>
-                                    <Grid item>
-                                        <Typography variant='caption' sx={{display:'flex', flexDirection:'column', gap:0.2}}>
-                                            <span style={{ fontWeight:600, fontSize:'0.7rem' }}>Rating</span>
-                                            <span><RatingStars rating={rating} /></span>
-                                        </Typography>
-                                    </Grid>
-
-                                    <Grid item>
-                                        <Button
-                                            variant='outlined'
-                                            size='small'
-                                            onClick={() => setShowRatingInput((prev) => !prev)}
-                                            sx={{ textTransform: 'none', fontSize: 11 }}
-                                        >
-                                            {showRatingInput ? 'Hide rating' : 'Rate this room'}
-                                        </Button>
-                                    </Grid>
-
-                                    {showRatingInput && (
-                                        <Grid item xs={12}>
-                                            <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                <span style={{ fontWeight: 500, fontSize: '0.75rem' }}>Select stars:</span>
-                                                <RatingStars rating={rating} onRate={setRating} />
-                                                <Button
-                                                    size='small'
-                                                    variant='contained'
-                                                    onClick={() => {
-                                                        setShowRatingInput(false)
-                                                        // placeholder for submit
-                                                    }}
-                                                    sx={{ textTransform: 'none', bgcolor: '#1E293B', color: '#fff', '&:hover': { bgcolor: '#16283f' } }}
-                                                >
-                                                    Save
-                                                </Button>
-                                            </Typography>
-                                        </Grid>
-                                    )}
 
                                 </Grid>
 
                             </Grid>
                         </CardContent>
                     </Card>
+
+                    {/* Rating System - Submission Form */}
+                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                        <Box sx={{ width: '100%' }}>
+                            <RateRoom roomId={roomId} userId={userId} />
+                        </Box>
+                    </Box>
+
+                    {/* Rating Statistics Display */}
+                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                        <Box sx={{ width: '100%' }}>
+                            <RatingDisplay roomId={roomId} />
+                        </Box>
+                    </Box>
 
                     {/* User review and tenant Review */}
                     <Card variant='outlined'
@@ -203,7 +184,7 @@ function ListingPage(){
                                 {/* Avater, Name and Review from the customers */}
                                 <Grid container alignItems="flex-start" spacing={1.5}>
                                     <Grid item>
-                                        <Avatar sx={{width:35, height:35,bgcolor:'orange',p:2}}>NJ</Avatar>
+                                        <Avatar sx={{width:35, height:35,bgcolor:'#0057b8',p:2}}>NJ</Avatar>
                                     </Grid>
 
                                     {/* Name, how long customer stayed and review */}
@@ -284,7 +265,7 @@ function ListingPage(){
                                 <Grid container direction={'column'} spacing={1}>
                                     <Grid container alignItems={'center'}>
                                         <Grid item>
-                                            <Avatar>YG</Avatar>
+                                            <Avatar sx={{bgcolor:'#0057b8'}}>YG</Avatar>
                                         </Grid>
                                         
                                         <Grid item>

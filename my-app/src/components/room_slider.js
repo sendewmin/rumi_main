@@ -3,6 +3,7 @@
 import {Swiper,SwiperSlide} from 'swiper/react';
 
 import { useState,useEffect } from 'react';
+import { Image as ImageIcon } from 'lucide-react';
 
 
 // importing the swiper css 
@@ -72,20 +73,42 @@ function RoomSlider(){
                         </SwiperSlide>
                     )}
 
-                    {/* Error slide */}
+                    {/* Error slide - Show placeholder with icon */}
                     {!loading && error && (
                         <SwiperSlide>
-                            <div className="slider-message">
-                                <div className="slider-message-text">{error}</div>
+                            <div className="slider-message" style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                height: '100%',
+                                background: 'linear-gradient(135deg, #e3eeff 0%, #dce8ff 50%, #e8f0ff 100%)',
+                                gap: '1rem'
+                            }}>
+                                <ImageIcon size={64} color="#0057b8" strokeWidth={1.5} />
+                                <div className="slider-message-text" style={{color: '#0057b8', fontSize: '16px', fontWeight: 500}}>
+                                    {error}
+                                </div>
                             </div>
                         </SwiperSlide>
                     )}
 
-                    {/* No images slide */}
+                    {/* No images slide - Show placeholder with icon */}
                     {!loading && !error && fetchImg.length === 0 && (
                         <SwiperSlide>
-                            <div className='slider-message'>
-                                <div className="slider-message-text">No images available</div>
+                            <div className='slider-message' style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                height: '100%',
+                                background: 'linear-gradient(135deg, #e3eeff 0%, #dce8ff 50%, #e8f0ff 100%)',
+                                gap: '1rem'
+                            }}>
+                                <ImageIcon size={64} color="#0057b8" strokeWidth={1.5} />
+                                <div className="slider-message-text" style={{color: '#0057b8', fontSize: '16px', fontWeight: 500}}>
+                                    No images available
+                                </div>
                             </div>
                         </SwiperSlide>
                     )}
