@@ -1,49 +1,83 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import RoomCard from './RoomCard';
-import { mockRooms } from './mockRooms';
+import roomFilterApi from '../api/roomFilterApi';
 import './BrowseRooms.css';
 
-const CITIES   = [
+const CITIES = [
   'All Cities', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Chilaw', 'Colombo',
   'Dambulla', 'Dehiwala', 'Galle', 'Jaffna', 'Kandy', 'Kalutara', 'Kurunegala',
   'Matara', 'Monaragala', 'Negombo', 'Nuwara Eliya', 'Panadura', 'Peradeniya',
   'Polonnaruwa', 'Ratnapura', 'Sri Jayawardenepura Kotte', 'Trincomalee',
 ];
-const TYPES    = ['All Types', 'Studio', 'Apartment', 'Annex', 'House', 'Boarding'];
-const BUDGETS  = [
-  { label: 'Any Budget',   min: 0,      max: Infinity },
-  { label: 'Under 30k',   min: 0,      max: 29999    },
-  { label: '30k – 60k',   min: 30000,  max: 60000    },
-  { label: '60k – 120k',  min: 60001,  max: 120000   },
-  { label: '120k+',       min: 120001, max: Infinity  },
+
+const TYPES = ['All Types', 'Studio', 'Apartment', 'Annex', 'House', 'Boarding'];
+
+const BUDGETS = [
+  { label: 'Any Budget',  min: 0,      max: Infinity },
+  { label: 'Under 30k',  min: 0,      max: 29999    },
+  { label: '30k – 60k',  min: 30000,  max: 60000    },
+  { label: '60k – 120k', min: 60001,  max: 120000   },
+  { label: '120k+',      min: 120001, max: Infinity  },
 ];
 
 const SortOptions = ['Recommended', 'Price: Low → High', 'Price: High → Low', 'Top Rated'];
 
 export default function BrowseRooms() {
-  const [city,       setCity]       = useState('All Cities');
-  const [type,       setType]       = useState('All Types');
-  const [budgetIdx,  setBudgetIdx]  = useState(0);
-  const [onlyAvail,  setOnlyAvail]  = useState(false);
-  const [sort,       setSort]       = useState('Recommended');
+  const [city,      setCity]      = useState('All Cities');
+  const [type,      setType]      = useState('All Types');
+  const [budgetIdx, setBudgetIdx] = useState(0);
+  const [onlyAvail, setOnlyAvail] = useState(false);
+  const [sort,      setSort]      = useState('Recommended');
+  const [rooms,     setRooms]     = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [error,     setError]     = useState(null);
+
+  useEffect(() => {
+    fetchRooms();
+  }, [city, budgetIdx, onlyAvail]);
+
+  const fetchRooms = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { min, max } = BUDGETS[budgetIdx];
+      const filters = {
+        city: city === 'All Cities' ? null : city,
+        minPrice: min === 0 ? null : min,
+        maxPrice: max === Infinity ? null : max,
+        roomStatus: onlyAvail ? 'AVAILABLE' : null,
+      };
+      const response = await roomFilterApi.searchRooms(filters, 0, 50);
+      const mappedRooms = response.data.content.map(room => ({
+        id: room.roomId,
+        title: room.roomTitle,
+        location: `${room.city}, ${room.country}`,
+        price: room.amount,
+        type: 'Apartment',
+        images: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688'],
+        available: room.roomStatus === 'AVAILABLE',
+        rating: 4.5,
+        reviews: 0,
+        bedrooms: room.maxRoommates,
+        bathrooms: 1,
+        city: room.city
+      }));
+      setRooms(mappedRooms);
+    } catch (err) {
+      setError("Could not load rooms. Please try again.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filtered = useMemo(() => {
-    const { min, max } = BUDGETS[budgetIdx];
-    let rooms = mockRooms.filter(r => {
-      if (city !== 'All Cities' && r.city !== city) return false;
-      if (type !== 'All Types' && r.type !== type) return false;
-      if (r.price < min || r.price > max)           return false;
-      if (onlyAvail && !r.available)                return false;
-      return true;
-    });
-
-    if (sort === 'Price: Low → High')  rooms = [...rooms].sort((a, b) => a.price - b.price);
-    if (sort === 'Price: High → Low')  rooms = [...rooms].sort((a, b) => b.price - a.price);
-    if (sort === 'Top Rated')          rooms = [...rooms].sort((a, b) => b.rating - a.rating);
-
-    return rooms;
-  }, [city, type, budgetIdx, onlyAvail, sort]);
+    let result = [...rooms];
+    if (sort === 'Price: Low → High') result = result.sort((a, b) => a.amount - b.amount);
+    if (sort === 'Price: High → Low') result = result.sort((a, b) => b.amount - a.amount);
+    return result;
+  }, [rooms, sort]);
 
   const clearFilters = () => {
     setCity('All Cities');
@@ -57,8 +91,6 @@ export default function BrowseRooms() {
 
   return (
     <div className="br-shell">
-
-      {/* ── Top bar ── */}
       <header className="br-topbar">
         <Link to="/" className="br-back-btn" aria-label="Back to home">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -66,29 +98,23 @@ export default function BrowseRooms() {
           </svg>
           Back
         </Link>
-
         <Link to="/" className="br-brand" aria-label="Rumi Rentals home">
           <div className="br-logo"><span className="br-logo-text">RUMI</span></div>
           <span className="br-brand-name">Rumi Rentals</span>
         </Link>
-
         <div className="br-topbar-right">
-          <Link to="/login"         className="br-signin">Sign In</Link>
+          <Link to="/login" className="br-signin">Sign In</Link>
           <Link to="/signup/tenant" className="br-cta">Sign Up Free</Link>
         </div>
       </header>
 
       <main className="br-main">
-        {/* ── Page title ── */}
         <div className="br-page-hd">
           <h1 className="br-page-title">Browse Rooms</h1>
           <p className="br-page-sub">Find verified rooms across Sri Lanka</p>
         </div>
 
-        {/* ── Filter bar ── */}
         <div className="br-filters" role="search" aria-label="Filter rooms">
-
-          {/* City */}
           <div className="br-filter-group">
             <label className="br-filter-label" htmlFor="br-city">📍 City</label>
             <select id="br-city" className="br-select" value={city} onChange={e => setCity(e.target.value)}>
@@ -96,7 +122,6 @@ export default function BrowseRooms() {
             </select>
           </div>
 
-          {/* Type */}
           <div className="br-filter-group">
             <label className="br-filter-label" htmlFor="br-type">🏠 Type</label>
             <select id="br-type" className="br-select" value={type} onChange={e => setType(e.target.value)}>
@@ -104,7 +129,6 @@ export default function BrowseRooms() {
             </select>
           </div>
 
-          {/* Budget */}
           <div className="br-filter-group">
             <label className="br-filter-label" htmlFor="br-budget">💰 Budget</label>
             <select id="br-budget" className="br-select" value={budgetIdx} onChange={e => setBudgetIdx(Number(e.target.value))}>
@@ -112,7 +136,6 @@ export default function BrowseRooms() {
             </select>
           </div>
 
-          {/* Sort */}
           <div className="br-filter-group">
             <label className="br-filter-label" htmlFor="br-sort">↕️ Sort</label>
             <select id="br-sort" className="br-select" value={sort} onChange={e => setSort(e.target.value)}>
@@ -120,7 +143,6 @@ export default function BrowseRooms() {
             </select>
           </div>
 
-          {/* Available only */}
           <label className="br-avail-check">
             <input
               type="checkbox"
@@ -131,7 +153,6 @@ export default function BrowseRooms() {
             Available only
           </label>
 
-          {/* Clear filters */}
           {hasFilters && (
             <button className="br-clear-btn" onClick={clearFilters}>
               ✕ Clear
@@ -139,18 +160,20 @@ export default function BrowseRooms() {
           )}
         </div>
 
-        {/* ── Results header ── */}
         <div className="br-results-hd">
           <p className="br-results-count">
             <strong>{filtered.length}</strong> room{filtered.length !== 1 ? 's' : ''} found
           </p>
         </div>
 
-        {/* ── Room grid ── */}
-        {filtered.length > 0 ? (
+        {loading ? (
+          <p style={{ textAlign: 'center' }}>Loading rooms...</p>
+        ) : error ? (
+          <p style={{ textAlign: 'center', color: 'red' }}>{error}</p>
+        ) : filtered.length > 0 ? (
           <div className="br-grid">
             {filtered.map(room => (
-              <RoomCard key={room.id} room={room} />
+              <RoomCard key={room.roomId} room={room} />
             ))}
           </div>
         ) : (
