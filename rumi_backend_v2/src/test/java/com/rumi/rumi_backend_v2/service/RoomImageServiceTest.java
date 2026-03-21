@@ -160,6 +160,22 @@ public class RoomImageServiceTest {
         }
     }
 
+    // HERE WE CHECK WHETHER THE IMAGE CONTENT-TYPE IS NULL OR NOT.
+    @Test
+    void testUploadRoomImageNullFileType(){
+        MockMultipartFile file = new MockMultipartFile("image", "image.png", null, "fake-image".getBytes());
+        when(roomRepo.findByRoomId(1L)).thenReturn(room);
+        when(userRepo.findById("user123")).thenReturn(Optional.of(userRenter));
+
+        try{
+            roomImageServiceImpl.uploadRoomImages(1L,List.of(file),"user123");
+        }
+        catch (RuntimeException e){
+            assertEquals("File type cannot be determined",e.getMessage());
+            System.out.println(e.getMessage());
+        }
+    }
+
 
 
 
