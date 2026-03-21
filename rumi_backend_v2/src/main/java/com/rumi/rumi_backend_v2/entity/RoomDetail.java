@@ -8,6 +8,8 @@ import com.rumi.rumi_backend_v2.enums.RoomStatus;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -33,6 +35,7 @@ public class RoomDetail {
     @Setter
     @Getter
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "gender_allowed",columnDefinition = "gender_allowed",nullable = false)
     private GenderAllowed genderAllowed;
 
@@ -78,9 +81,20 @@ public class RoomDetail {
     @Builder.Default
     private Set<PaymentCondition> paymentConditions = new HashSet<>();
 
+    @OneToOne(mappedBy = "room", fetch = FetchType.LAZY)
+    @Getter
+    @Setter
+    private Address address;
+
+    @OneToOne(mappedBy = "room", fetch = FetchType.LAZY)
+    @Getter
+    @Setter
+    private RoomPrice roomPrice;
+
     @Setter
     @Getter
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "room_status",columnDefinition = "room_status",nullable = false)
     private RoomStatus roomStatus;
 
@@ -98,16 +112,6 @@ public class RoomDetail {
 
         public void setPaymentConditions(Set<PaymentCondition> paymentConditions) {
             this.paymentConditions = paymentConditions;
-        }
-
-        public Address getAddress() {
-            // Implement according to your mapping, placeholder
-            return null;
-        }
-
-        public RoomPrice getRoomPrice() {
-            // Implement according to your mapping, placeholder
-            return null;
         }
 
 }

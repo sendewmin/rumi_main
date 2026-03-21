@@ -3,6 +3,8 @@ package com.rumi.rumi_backend_v2.entity;
 import com.rumi.rumi_backend_v2.enums.BillingCycle;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @NoArgsConstructor
@@ -26,6 +28,7 @@ public class RoomPrice {
     @Getter
     @Setter
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private BillingCycle billingCycle;
 
     @Column(name="amount")

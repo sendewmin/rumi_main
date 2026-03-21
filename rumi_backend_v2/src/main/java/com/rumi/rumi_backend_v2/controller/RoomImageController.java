@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -30,14 +29,8 @@ public class RoomImageController {
     //here we take the room_id as Path Param and store it in the room_id variable
     public ResponseEntity<?> uploadImages(@PathVariable("room_id") long roomId, @RequestParam("image")List<MultipartFile> images,@RequestHeader("Authorization") String authHeader){
         try{
-            // Check header exists
             System.out.println("controller access token:"+authHeader);
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing or invalid Authorization header");
-            }
-
-            String token = authHeader.replace("Bearer ", ""); // clean token
-            String userId = supabaseAuthService.getUserId(token); // verify + extract userId
+            String userId = supabaseAuthService.getUserId(authHeader); // verify + extract userId
 
             roomImageService.uploadRoomImages(roomId,images,userId);
             System.out.println("Controller: "+roomId);

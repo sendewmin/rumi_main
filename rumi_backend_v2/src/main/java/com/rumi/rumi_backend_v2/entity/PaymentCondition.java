@@ -15,7 +15,7 @@ public class PaymentCondition {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="condition_id")
     @Getter
-    private Long condition_id;
+    private Long conditionId;
 
     @Enumerated(EnumType.STRING)
     @Getter
@@ -25,7 +25,7 @@ public class PaymentCondition {
     private PaymentConditionName conditionName;
 
         public Long getConditionId() {
-            return condition_id;
+            return conditionId;
         }
 
         public String getName() {
