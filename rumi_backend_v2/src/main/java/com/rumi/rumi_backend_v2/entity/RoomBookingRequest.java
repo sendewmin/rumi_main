@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table (name="room_booking_request")
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class RoomBookingRequest {
 
@@ -31,7 +33,7 @@ public class RoomBookingRequest {
     @Getter
     @Setter
     @Enumerated(EnumType.STRING)
-    @Column(name="booking_status", nullable=false)
+    @Column(name="booking_status",columnDefinition = "room_booking_request_status",nullable=false)
     private RoomBookingRequestStatus bookingStatus;
 
     @Getter

@@ -1,0 +1,9 @@
+.perfect-nest-text {
+  text-align: center;
+  font-size: clamp(1.2rem, 2.6vw, 1.8rem);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  letter-spacing: 0.25px;
+  color: #123d73;
+  font-weight: 700;
+  margin: 0;
+}

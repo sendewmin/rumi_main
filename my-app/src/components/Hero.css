@@ -1,0 +1,180 @@
+/* ═══════════════════════════════════════════
+   Hero  –  smooth cubic-bezier animations
+═══════════════════════════════════════════ */
+
+.hero {
+  background: linear-gradient(135deg, #002f78 0%, #0050ae 52%, #1369cc 100%);
+  min-height: 460px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3rem 7% 3rem 6%;
+  color: #ffffff;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  position: relative;
+  overflow: hidden;
+  gap: 2rem;
+}
+
+/* Ambient radial lights */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 78% 15%, rgba(255,255,255,0.07) 0%, transparent 50%),
+    radial-gradient(ellipse at 8%  80%, rgba(0, 20, 70, 0.28)  0%, transparent 42%);
+  pointer-events: none;
+}
+
+/* ── Left column ── */
+.hero-content {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Eyebrow pill ── */
+.hero-eyebrow {
+  font-size: 0.77rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 0.3rem 0.82rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 0.9rem;
+  letter-spacing: 0.3px;
+  opacity: 0;
+  animation: hero-slide-in 0.48s cubic-bezier(0.4, 0, 0.2, 1) 0.02s forwards;
+  will-change: transform, opacity;
+}
+
+/* ── Headline lines (slide in from left) ── */
+.her_1,
+.her_2,
+.her_3 {
+  font-size: clamp(2.2rem, 5.5vw, 4rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.7px;
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.her_1 { animation: hero-slide-in 0.52s cubic-bezier(0.4, 0, 0.2, 1) 0.10s forwards; }
+.her_2 { animation: hero-slide-in 0.52s cubic-bezier(0.4, 0, 0.2, 1) 0.19s forwards; }
+.her_3 { animation: hero-slide-in 0.52s cubic-bezier(0.4, 0, 0.2, 1) 0.28s forwards; }
+
+@keyframes hero-slide-in {
+  from { opacity: 0; transform: translate3d(-18px, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* ── Post-ad CTA ── */
+.hero-cta-row {
+  margin-top: 2rem;
+  opacity: 0;
+  animation: hero-rise 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.38s forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes hero-rise {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+.hero-post-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  padding: 0.62rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: 0.2px;
+  transition:
+    background   0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform    0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-post-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+}
+
+.hero-post-btn:active { transform: translateY(0); }
+
+/* ── Floating room image ── */
+.hero-image {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.hero-image img {
+  width: min(580px, 100%);
+  max-width: 100%;
+  filter: drop-shadow(0 22px 44px rgba(0, 18, 60, 0.4));
+  animation: hero-float 5.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  will-change: transform;
+}
+
+@keyframes hero-float {
+  0%,  100% { transform: translateY(0px); }
+  50%        { transform: translateY(-15px); }
+}
+
+/* ── Tablet ── */
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+    text-align: center;
+    min-height: auto;
+    padding: 2.2rem 1.4rem 2rem;
+    gap: 1.5rem;
+  }
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .her_1, .her_2, .her_3 {
+    font-size: clamp(1.9rem, 10vw, 2.7rem);
+    white-space: normal;
+  }
+
+  .hero-image img { width: min(400px, 90%); }
+}
+
+@media (max-width: 480px) {
+  .hero { padding: 1.8rem 1rem 1.6rem; }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .hero-eyebrow,
+  .her_1, .her_2, .her_3,
+  .hero-cta-row,
+  .hero-image img {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

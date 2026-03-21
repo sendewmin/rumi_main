@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Table(name="room_price")
 public class RoomPrice {
@@ -20,7 +22,7 @@ public class RoomPrice {
     @Getter
     private RoomDetail room;
 
-    @Column(name="billing_cycle", nullable=false)
+    @Column(name="billing_cycle",columnDefinition = "billing_cycle",nullable=false)
     @Getter
     @Setter
     @Enumerated(EnumType.STRING)
