@@ -28,6 +28,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+// How testing is done
+// First Create the Mock data
+// Then Pass it the method
+// Then catch the errors from the methods.
 
 @ExtendWith(MockitoExtension.class)  // Here we extend the class with Mockito Extension.
 public class RoomImageServiceTest {
@@ -45,7 +49,7 @@ public class RoomImageServiceTest {
     private SupabaseStorageService supabaseStorageService;
 
 
-    @InjectMocks  // This injects the needed methods for the RoomImageServiceImple from repos.
+    @InjectMocks  // This injects the needed methods for the RoomImageServiceImple from repo.
     private RoomImageServiceImpl roomImageServiceImpl;
 
     private RoomDetail room;
