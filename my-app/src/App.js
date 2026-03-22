@@ -12,6 +12,7 @@ import ListingPage from "./room_listing/listing_page";
 import BrowseRooms from "./components/BrowseRooms";
 import HowItWorks from "./components/HowItWorks";
 import RoomShareListing from "./room_share_lisiting/page/sharelisting";
+import RoomSharePostPage from "./room_share_lisiting/page/RoomSharePostPage";
 import VerifyEmail from "./auth/VerifyEmail";
 
 function AppRoutes() {
@@ -27,10 +28,11 @@ function AppRoutes() {
       <Route path="/rooms" element={<BrowseRooms />} />
       <Route path="/how-it-works" element={<HowItWorks />} />
       <Route path="/share" element={<RoomShareListing />} />
+      <Route path="/share/post" element={<RoomSharePostPage />} />
       <Route path="/listing/:id" element={<ListingPage />} />
       <Route path="/verify" element={<VerifyEmail />} />
 
-      {/* Auth routes — redirect to / if already logged in */}
+      {/* Auth routes — redirect if already logged in */}
       <Route
         path="/login"
         element={user ? <Navigate to="/" replace /> : <LoginPage />}
