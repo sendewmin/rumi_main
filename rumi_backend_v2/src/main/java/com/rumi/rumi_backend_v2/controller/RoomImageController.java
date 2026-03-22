@@ -28,7 +28,7 @@ public class RoomImageController {
 
     @PostMapping(path = "/{room_id}/images")  //here the psot mapping url is room id/ image
     //here we take the room_id as Path Param and store it in the room_id variable
-    public ResponseEntity<?> uploadImages(@PathVariable("room_id") long roomId, @RequestParam("image")List<MultipartFile> images,@RequestHeader("Authorization") String authHeader){
+    public ResponseEntity<?> uploadImages(@PathVariable("room_id") long roomId, @RequestParam("image")List<MultipartFile> images,@RequestHeader(value = "Authorization",required = false) String authHeader){
         try{
             // Check header exists
             System.out.println("controller access token:"+authHeader);
@@ -40,19 +40,38 @@ public class RoomImageController {
             String userId = supabaseAuthService.getUserId(token); // verify + extract userId
 
             roomImageService.uploadRoomImages(roomId,images,userId);
-            System.out.println("Controller: "+roomId);
+            System.out.println("Controller room id: "+roomId);
+            System.out.println("Data passed from controller to service.");
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Room Image Added"));
         }
+
+        catch (ResponseStatusException e) {
+            // Handle 401
+            System.out.println("Controller: " + e.getMessage());
+            return ResponseEntity.status(e.getStatusCode()).body(Map.of("error","Missing or invalid Authorization header"));
+        }
+
         catch(RuntimeException e){
             if (e.getMessage().contains("Room not found")) {
                 System.out.println("Controller: "+e.getMessage());
-                System.out.println(ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Room not found")));
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Room not found"));
+                //System.out.println(ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Room not found")));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
             }
+
+            if (e.getMessage().contains("Only renters") || e.getMessage().contains("do not own")) {
+                System.out.println("Only renter can upload images.");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+            }
+
+            if(e.getMessage().contains("Authorised, Invalid ")){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
+            }
+
             //TODO: have to show user image type error
             System.out.println("Controller: "+e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Image Upload Failed"));
         }
+
         catch (Exception e) {
             System.out.println("Controller: "+e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Image Upload Failed"));
