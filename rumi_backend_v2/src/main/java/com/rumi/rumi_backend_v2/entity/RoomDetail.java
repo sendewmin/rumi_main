@@ -6,6 +6,7 @@ import com.rumi.rumi_backend_v2.enums.GenderAllowed;
 // IMPORT OF THE ROOMSTATUS ENUM
 import com.rumi.rumi_backend_v2.enums.RoomStatus;
 
+import com.rumi.rumi_backend_v2.enums.RoomType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -98,20 +99,26 @@ public class RoomDetail {
     @Column(name = "room_status",columnDefinition = "room_status",nullable = false)
     private RoomStatus roomStatus;
 
-        public void setRenter(User renter) {
-            this.renter = renter;
-        }
+    @Setter
+    @Getter
+    @Enumerated(EnumType.STRING)
+    @Column(name="room_type", columnDefinition = "room_type", nullable = false)
+    private RoomType roomType;
 
-        public void setAmenities(Set<Amenity> amenities) {
-            this.amenities = amenities;
-        }
+    public void setRenter(User renter) {
+        this.renter = renter;
+    }
 
-        public void setRules(Set<Rule> rules) {
-            this.rules = rules;
-        }
+    public void setAmenities(Set<Amenity> amenities) {
+        this.amenities = amenities;
+    }
 
-        public void setPaymentConditions(Set<PaymentCondition> paymentConditions) {
-            this.paymentConditions = paymentConditions;
-        }
+    public void setRules(Set<Rule> rules) {
+        this.rules = rules;
+    }
+
+    public void setPaymentConditions(Set<PaymentCondition> paymentConditions) {
+        this.paymentConditions = paymentConditions;
+    }
 
 }
