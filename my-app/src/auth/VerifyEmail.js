@@ -13,6 +13,13 @@ export default function VerifyEmail() {
   const [status, setStatus] = useState("verifying");
 
   useEffect(() => {
+
+
+  // status can be:
+  // 'verifying' — checking if the token worked (initial state)
+  // 'success'   — email confirmed, session is active
+  // 'error'     — token expired or invalid
+  
     // Supabase automatically handles the token in the URL
     // Just check if user is now logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
