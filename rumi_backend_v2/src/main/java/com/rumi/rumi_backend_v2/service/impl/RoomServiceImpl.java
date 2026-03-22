@@ -64,6 +64,7 @@ public class RoomServiceImpl implements RoomService {
         room.setGenderAllowed(dto.getGenderAllowed());
         room.setMaxRoommates(dto.getMaxRoommates());
         room.setRoomStatus(dto.getRoomStatus() != null ? dto.getRoomStatus() : RoomStatus.AVAILABLE);
+        room.setRoomType(dto.getRoomType());
         room = roomRepo.save(room);
         
         // Address
