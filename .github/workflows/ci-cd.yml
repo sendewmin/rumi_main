@@ -1,3 +1,6 @@
+#The Ubuntu-latest test the spring and frontend application by only compiling,running,tests and packaging
+# It is not running our Spring boot application so it won't search for the Supabase credentials.
+# CI/CD only compile and run the test file.
 name: CI Pipeline
 
 on:
@@ -23,7 +26,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 22
+          node-version: 18   #More Stable version
 
       - name: Install dependencies
         run: npm ci  # the exact dependency from the package-lock.js
