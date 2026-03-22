@@ -29,6 +29,20 @@
     "test:ci": "react-scripts test --watchAll=false --passWithNoTests",
     "eject": "react-scripts eject"
   },
+
+  "jest": {
+    "moduleNameMapper": {
+      "^swiper/react$": "my-app/src/__mocks__/swiper-react.js",
+      "^swiper/modules$": "my-app/src/__mocks__/swiper-modules.js",
+      "^swiper/css$": "my-app/src/__mocks__/swiper-css.js",
+      "^swiper/css/(.*)$": "my-app/src/__mocks__/swiper-css.js"
+    },
+    
+    "transformIgnorePatterns": [
+      "node_modules/(?!(swiper|ssr-window|dom7)/)"
+    ]
+  },
+
   "eslintConfig": {
     "extends": [
       "react-app",
