@@ -398,6 +398,14 @@ export default function Homepage() {
                         ))}
                       </div>
 
+                      <Link
+                        to="/dashboard/landlord"
+                        className="hp-profile-link"
+                        onClick={() => setProfileOpen(false)}
+                      >
+                        <LayoutDashboard size={16} /> Landlord Dashboard
+                      </Link>
+
                       <button
                         className="hp-signout-btn"
                         onClick={handleSignOut}

@@ -1239,6 +1239,30 @@
   white-space: nowrap;
 }
 
+/* ── Dashboard link ── */
+.hp-profile-link {
+  width: 100%;
+  padding: 12px 16px;
+  background: #ffffff;
+  border: none;
+  text-decoration: none;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #003f8a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-bottom: 1px solid #f0f4ff;
+}
+
+.hp-profile-link:hover {
+  background: #f7f9ff;
+}
+
 /* ── Sign out button ── */
 .hp-signout-btn {
   width: 100%;
