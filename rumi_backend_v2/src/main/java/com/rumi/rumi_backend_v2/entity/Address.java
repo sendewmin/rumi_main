@@ -45,7 +45,7 @@ public class Address {
 
     @Getter
     @Setter
-    @Column(name="map_url", nullable=false)
+    @Column(name="map_url", nullable=true)
     private String mapUrl;
 
 }
