@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import './LandlordDashboard.css';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
+import { supabase } from '../auth/supabaseClient';
+import axios from 'axios';
 
 const mockListings = [
   {
@@ -69,14 +72,157 @@ const ListingCard = ({ listing, onEdit }) => (
 
 const LandlordDashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [listings] = useState(mockListings);
+  const [showPostForm, setShowPostForm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [successId, setSuccessId] = useState(null);
+  
+  const [formData, setFormData] = useState({
+    roomTitle: '',
+    roomDescription: '',
+    genderAllowed: 'UNSPECIFIED',
+    maxRoommates: 1,
+    roomStatus: 'AVAILABLE',
+    houseNumber: '',
+    addressLine: '',
+    city: '',
+    country: '',
+    amount: '',
+    advance: '',
+    billingCycle: 'MONTHLY'
+  });
+  
+  const [images, setImages] = useState([]);
 
-  const active = listings.filter(l => l.status === 'active');
-  const inReview = listings.filter(l => l.status === 'review');
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    setImages(prev => [...prev, ...files]);
+  };
+
+  const removeImage = (index) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage('');
+    setLoading(true);
+    setSuccessId(null);
+
+    try {
+      // Require authentication
+      if (!user) {
+        setMessage('❌ Please log in to create listings');
+        setLoading(false);
+        return;
+      }
+
+      // Validate required fields
+      if (!formData.roomTitle || !formData.roomDescription || !formData.city || !formData.amount || !formData.advance) {
+        setMessage('❌ Please fill in all required fields');
+        setLoading(false);
+        return;
+      }
+
+      // Get auth token from session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setMessage('❌ Authentication failed. Please log in again.');
+        setLoading(false);
+        return;
+      }
+
+      const headers = {
+        'Authorization': `Bearer ${session.access_token}`
+      };
+
+      // Create room payload
+      const roomPayload = {
+        roomTitle: formData.roomTitle,
+        roomDescription: formData.roomDescription,
+        genderAllowed: formData.genderAllowed,
+        maxRoommates: parseInt(formData.maxRoommates) || 1,
+        roomStatus: formData.roomStatus,
+        address: {
+          houseNumber: parseInt(formData.houseNumber) || 1,
+          addressLine: formData.addressLine || 'N/A',
+          city: formData.city,
+          country: formData.country
+        },
+        price: {
+          amount: parseInt(formData.amount),
+          advance: parseInt(formData.advance),
+          billingCycle: formData.billingCycle
+        },
+        amenityIds: [1],
+        ruleIds: [1],
+        paymentConditionIds: [1]
+      };
+
+
+
+      // Post room
+      const roomRes = await axios.post(
+        'http://localhost:8080/api/rooms',
+        roomPayload,
+        { headers }
+      );
+
+      const roomId = roomRes.data.roomId;
+      setSuccessId(roomId);
+      setMessage(`✅ Room created! ID: ${roomId}`);
+
+      // Upload images if provided
+      if (images.length > 0) {
+        const formDataImg = new FormData();
+        images.forEach(img => formDataImg.append('image', img));
+        
+        await axios.post(
+          `http://localhost:8080/api/rooms/${roomId}/images`,
+          formDataImg,
+          { headers }
+        );
+      }
+
+      // Reset form
+      setFormData({
+        roomTitle: '',
+        roomDescription: '',
+        genderAllowed: 'UNSPECIFIED',
+        maxRoommates: 1,
+        roomStatus: 'AVAILABLE',
+        houseNumber: '',
+        addressLine: '',
+        city: '',
+        country: '',
+        amount: '',
+        advance: '',
+        billingCycle: 'MONTHLY'
+      });
+      setImages([]);
+
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.response?.data || err.message;
+      console.error('Full error:', err.response?.data);
+      setMessage(`❌ Error: ${typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleEdit = (listing) => {
     console.log('Edit listing:', listing.id);
   };
+
+  const active = listings.filter(l => l.status === 'active');
+  const inReview = listings.filter(l => l.status === 'review');
 
   return (
     <div className="ld-page">
@@ -102,60 +248,240 @@ const LandlordDashboard = () => {
 
       {/* ── Right dashboard panel ── */}
       <div className="ld-dashboard-section">
-        {/* Header row */}
-        <div className="ld-dashboard-header">
-          <div>
-            <h2 className="ld-dashboard-title">Landlord Dashboard</h2>
-            <p className="ld-dashboard-subtitle">Your property overview</p>
+        
+        {/* POST FORM VIEW */}
+        {showPostForm ? (
+          <div className="ld-form-container">
+            <div className="ld-form-header">
+              <h2>Post New Listing</h2>
+              <button className="ld-close-btn" onClick={() => setShowPostForm(false)}>✕</button>
+            </div>
+
+            {!user && (
+              <div className="ld-auth-notice">
+                ℹ️ <strong>Sign In</strong> to post listings with your account. Posting as guest (limited functionality).
+              </div>
+            )}
+
+            {message && (
+              <div className={`ld-message ${message.includes('✅') ? 'ld-success' : 'ld-error'}`}>
+                {message}
+                {successId && message.includes('✅') && (
+                  <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid currentColor' }}>
+                    <button 
+                      onClick={() => navigate(`/listing/${successId}`)}
+                      style={{ 
+                        background: 'none', 
+                        border: 'none', 
+                        color: 'inherit',
+                        cursor: 'pointer',
+                        textDecoration: 'underline'
+                      }}
+                    >
+                      👁️ View Posted Listing
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="ld-post-form">
+              {/* Room Info */}
+              <fieldset className="ld-fieldset">
+                <legend>Room Information</legend>
+                <input
+                  type="text"
+                  name="roomTitle"
+                  placeholder="Room Title (e.g., Spacious Bedroom in Colombo)"
+                  value={formData.roomTitle}
+                  onChange={handleInputChange}
+                  required
+                />
+                <textarea
+                  name="roomDescription"
+                  placeholder="Describe your room, amenities, and what makes it special..."
+                  value={formData.roomDescription}
+                  onChange={handleInputChange}
+                  rows="3"
+                  required
+                />
+                <div className="ld-form-row">
+                  <select name="genderAllowed" value={formData.genderAllowed} onChange={handleInputChange}>
+                    <option value="UNSPECIFIED">Gender Preference</option>
+                    <option value="MALE">Male Only</option>
+                    <option value="FEMALE">Female Only</option>
+                    <option value="UNSPECIFIED">Any</option>
+                  </select>
+                  <input
+                    type="number"
+                    name="maxRoommates"
+                    placeholder="Max Roommates"
+                    value={formData.maxRoommates}
+                    onChange={handleInputChange}
+                    min="1"
+                    max="10"
+                  />
+                </div>
+                <select name="roomStatus" value={formData.roomStatus} onChange={handleInputChange}>
+                  <option value="AVAILABLE">Status: Available</option>
+                  <option value="OCCUPIED">Occupied</option>
+                  <option value="MAINTENANCE">Maintenance</option>
+                </select>
+              </fieldset>
+
+              {/* Location */}
+              <fieldset className="ld-fieldset">
+                <legend>Location</legend>
+                <div className="ld-form-row">
+                  <input
+                    type="text"
+                    name="houseNumber"
+                    placeholder="House/Apt Number"
+                    value={formData.houseNumber}
+                    onChange={handleInputChange}
+                  />
+                  <input
+                    type="text"
+                    name="addressLine"
+                    placeholder="Street Address"
+                    value={formData.addressLine}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="ld-form-row">
+                  <input
+                    type="text"
+                    name="city"
+                    placeholder="City"
+                    value={formData.city}
+                    onChange={handleInputChange}
+                    required
+                  />
+                  <input
+                    type="text"
+                    name="country"
+                    placeholder="Country"
+                    value={formData.country}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </fieldset>
+
+              {/* Pricing */}
+              <fieldset className="ld-fieldset">
+                <legend>Pricing</legend>
+                <div className="ld-form-row">
+                  <input
+                    type="number"
+                    name="amount"
+                    placeholder="Monthly Rent (LKR)"
+                    value={formData.amount}
+                    onChange={handleInputChange}
+                    required
+                  />
+                  <input
+                    type="number"
+                    name="advance"
+                    placeholder="Advance Required (LKR)"
+                    value={formData.advance}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <select name="billingCycle" value={formData.billingCycle} onChange={handleInputChange}>
+                  <option value="MONTHLY">Monthly</option>
+                  <option value="YEARLY">Yearly</option>
+                </select>
+              </fieldset>
+
+              {/* Images */}
+              <fieldset className="ld-fieldset">
+                <legend>Room Images</legend>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+                {images.length > 0 && (
+                  <div className="ld-image-preview">
+                    {images.map((img, i) => (
+                      <div key={i} className="ld-img-item">
+                        <img src={URL.createObjectURL(img)} alt={`preview-${i}`} />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(i)}
+                          className="ld-remove-img"
+                        >✕</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </fieldset>
+
+              <button type="submit" disabled={loading} className="ld-submit-btn">
+                {loading ? '📤 Posting...' : '📤 Post Listing'}
+              </button>
+            </form>
           </div>
-          <button className="ld-logout-btn" onClick={() => navigate('/login')}>Logout</button>
-        </div>
-
-        {/* Stats row */}
-        <div className="ld-stats-row">
-          {stats.map(s => (
-            <div className="ld-stat-card" key={s.label}>
-              <p className="ld-stat-value">{s.value}</p>
-              <p className="ld-stat-label">{s.label}</p>
+        ) : (
+          <>
+            {/* Header row */}
+            <div className="ld-dashboard-header">
+              <div>
+                <h2 className="ld-dashboard-title">Landlord Dashboard</h2>
+                <p className="ld-dashboard-subtitle">Your property overview</p>
+              </div>
+              <button className="ld-logout-btn" onClick={() => navigate('/login')}>Logout</button>
             </div>
-          ))}
-        </div>
 
-        {/* Current Listings */}
-        <div className="ld-section">
-          <h3 className="ld-section-title">Current Listings</h3>
-          {active.length > 0 ? (
-            <div className="ld-listings-list">
-              {active.map(l => (
-                <ListingCard key={l.id} listing={l} onEdit={handleEdit} />
+            {/* Stats row */}
+            <div className="ld-stats-row">
+              {stats.map(s => (
+                <div className="ld-stat-card" key={s.label}>
+                  <p className="ld-stat-value">{s.value}</p>
+                  <p className="ld-stat-label">{s.label}</p>
+                </div>
               ))}
             </div>
-          ) : (
-            <p className="ld-empty">No active listings yet.</p>
-          )}
-        </div>
 
-        {/* Listings in Review */}
-        <div className="ld-section">
-          <h3 className="ld-section-title">Listings in Review</h3>
-          {inReview.length > 0 ? (
-            <div className="ld-listings-list">
-              {inReview.map(l => (
-                <ListingCard key={l.id} listing={l} onEdit={handleEdit} />
-              ))}
+            {/* Current Listings */}
+            <div className="ld-section">
+              <h3 className="ld-section-title">Current Listings</h3>
+              {active.length > 0 ? (
+                <div className="ld-listings-list">
+                  {active.map(l => (
+                    <ListingCard key={l.id} listing={l} onEdit={handleEdit} />
+                  ))}
+                </div>
+              ) : (
+                <p className="ld-empty">No active listings yet.</p>
+              )}
             </div>
-          ) : (
-            <p className="ld-empty">No listings in review.</p>
-          )}
-        </div>
 
-        {/* Post New Listing CTA */}
-        <button className="ld-post-btn" onClick={() => navigate('/landlord')}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-            <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-          </svg>
-          Post New Listing
-        </button>
+            {/* Listings in Review */}
+            <div className="ld-section">
+              <h3 className="ld-section-title">Listings in Review</h3>
+              {inReview.length > 0 ? (
+                <div className="ld-listings-list">
+                  {inReview.map(l => (
+                    <ListingCard key={l.id} listing={l} onEdit={handleEdit} />
+                  ))}
+                </div>
+              ) : (
+                <p className="ld-empty">No listings in review.</p>
+              )}
+            </div>
+
+            {/* Post New Listing CTA */}
+            <button className="ld-post-btn" onClick={() => setShowPostForm(true)}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
+              Post New Listing
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

@@ -218,6 +218,8 @@ export default function Homepage() {
   const [cityVal, setCityVal] = useState("Colombo");
   const [typeVal, setTypeVal] = useState("Any type");
   const [budgetVal, setBudgetVal] = useState("Any budget");
+  const [featuredRooms, setFeaturedRooms] = useState([]);
+  const [loadingFeatured, setLoadingFeatured] = useState(true);
 
   const signupRef = useRef(null);
   const profileRef = useRef(null);
@@ -256,6 +258,49 @@ export default function Homepage() {
       document.body.style.overflow = "";
     };
   }, [mobileOpen]);
+
+  // Fetch featured rooms from backend API
+  useEffect(() => {
+    const fetchFeaturedRooms = async () => {
+      try {
+        setLoadingFeatured(true);
+        const response = await fetch('http://localhost:8080/api/rooms/search?page=0&size=3');
+        const data = await response.json();
+
+        const formatted = data.content.map(room => ({
+          id: room.roomId,
+          title: room.roomTitle || 'Room',
+          location: `${room.city}, ${room.country}`,
+          city: room.city,
+          price: room.amount,
+          type: room.roomType || 'Apartment',
+          bedrooms: room.maxRoommates || 1,
+          bathrooms: 1,
+          sqft: 500,
+          rating: 4.7,
+          reviews: 0,
+          available: room.roomStatus === 'AVAILABLE',
+          landlord: { name: 'RUMI', joined: '2024' },
+          amenities: ['WiFi', 'Modern Amenities'],
+          rules: [],
+          description: room.roomDescription || 'Beautiful room available now',
+          images: room.imageUrl 
+            ? [room.imageUrl] 
+            : ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=800']
+        }));
+
+        setFeaturedRooms(formatted);
+      } catch (err) {
+        console.error('Error fetching featured rooms:', err);
+        // Fall back to mockRooms if there's an error
+        setFeaturedRooms(mockRooms.slice(0, 3));
+      } finally {
+        setLoadingFeatured(false);
+      }
+    };
+
+    fetchFeaturedRooms();
+  }, []);
 
   const toggleField = (field) =>
     setActiveField((prev) => (prev === field ? null : field));
@@ -676,15 +721,19 @@ export default function Homepage() {
               </p>
             </div>
             <div className="hp-rooms-grid">
-              {mockRooms.slice(0, 3).map((room, i) => (
-                <div
-                  key={room.id}
-                  className="hp-card-reveal"
-                  style={{ "--card-i": i }}
-                >
-                  <RoomCard room={room} />
-                </div>
-              ))}
+              {loadingFeatured ? (
+                <p style={{ textAlign: 'center', padding: '20px', gridColumn: '1 / -1' }}>Loading featured rooms...</p>
+              ) : (
+                (featuredRooms.length > 0 ? featuredRooms : mockRooms.slice(0, 3)).map((room, i) => (
+                  <div
+                    key={room.id}
+                    className="hp-card-reveal"
+                    style={{ "--card-i": i }}
+                  >
+                    <RoomCard room={room} />
+                  </div>
+                ))
+              )}
             </div>
             <div className="hp-view-all-wrap">
               <Link to="/rooms" className="hp-view-all-btn">

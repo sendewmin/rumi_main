@@ -16,20 +16,24 @@ import org.slf4j.LoggerFactory;
 @RestController
 @RequestMapping("/api/rooms")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class RoomController {
     private final RoomService roomService;
     private static final Logger log = LoggerFactory.getLogger(RoomController.class);
 
     @PostMapping
     public ResponseEntity<?> createRoom(@Valid @RequestBody RoomCreateRequest request,
-                                        @RequestHeader("Authorization") String authHeader) {
+                                        @RequestHeader(value = "Authorization") String authHeader) {
         try {
+            log.info("Creating room with title: {}", request.getRoomTitle());
             Long roomId = roomService.createRoom(request, authHeader);
+            log.info("Room created successfully with ID: {}", roomId);
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("roomId", roomId));
         } catch (ResponseStatusException e) {
+            log.warn("ResponseStatusException: {}", e.getReason());
             return ResponseEntity.status(e.getStatusCode()).body(Map.of("error", e.getReason()));
         } catch (Exception e) {
-            log.error("Room creation failed", e);
+            log.error("Room creation failed with exception", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Room creation failed"));
         }
     }

@@ -37,7 +37,7 @@ public class RoomDetail {
     @Getter
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name = "gender_allowed",columnDefinition = "gender_allowed",nullable = false)
+    @Column(name = "gender_allowed", nullable = false)
     private GenderAllowed genderAllowed;
 
     @Setter
@@ -96,7 +96,7 @@ public class RoomDetail {
     @Getter
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name = "room_status",columnDefinition = "room_status",nullable = false)
+    @Column(name = "room_status", nullable = false)
     private RoomStatus roomStatus;
 
     @Setter

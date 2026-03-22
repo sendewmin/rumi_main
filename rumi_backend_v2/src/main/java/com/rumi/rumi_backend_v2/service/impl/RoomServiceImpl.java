@@ -11,12 +11,14 @@ import com.rumi.rumi_backend_v2.service.RoomService;
 import com.rumi.rumi_backend_v2.util.SupabaseAuthService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RoomServiceImpl implements RoomService {
@@ -32,11 +34,13 @@ public class RoomServiceImpl implements RoomService {
     @Override
     @Transactional
     public Long createRoom(RoomCreateRequest dto, String authHeader) {
+        // Get authenticated user
         String userId = supabaseAuthService.getUserId(authHeader);
         User user = userRepo.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
         if (user.getRole() != RoleName.RENTER) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only renters can create rooms");
         }
+        
         // Build RoomDetail
         RoomDetail room = new RoomDetail();
         room.setRenter(user);
@@ -46,6 +50,7 @@ public class RoomServiceImpl implements RoomService {
         room.setMaxRoommates(dto.getMaxRoommates());
         room.setRoomStatus(dto.getRoomStatus() != null ? dto.getRoomStatus() : RoomStatus.AVAILABLE);
         room = roomRepo.save(room);
+        
         // Address
         Address address = new Address();
         RoomCreateRequest.AddressDto a = dto.getAddress();
@@ -56,6 +61,7 @@ public class RoomServiceImpl implements RoomService {
         address.setCountry(a.getCountry());
         address.setMapUrl(a.getMapUrl());
         addressRepo.save(address);
+        
         // Price
         RoomPrice price = new RoomPrice();
         RoomCreateRequest.PriceDto p = dto.getPrice();
@@ -64,15 +70,25 @@ public class RoomServiceImpl implements RoomService {
         price.setAdvance(p.getAdvance());
         price.setBillingCycle(p.getBillingCycle());
         roomPriceRepo.save(price);
+        
         // Amenities
         List<Amenity> amenities = amenityRepo.findByAmenityIdIn(dto.getAmenityIds());
-        room.setAmenities(new java.util.HashSet<>(amenities));
+        if (!amenities.isEmpty()) {
+            room.setAmenities(new java.util.HashSet<>(amenities));
+        }
+        
         // Rules
         List<Rule> rules = ruleRepo.findByRuleIdIn(dto.getRuleIds());
-        room.setRules(new java.util.HashSet<>(rules));
+        if (!rules.isEmpty()) {
+            room.setRules(new java.util.HashSet<>(rules));
+        }
+        
         // Payment Conditions
         List<PaymentCondition> paymentConditions = paymentConditionRepo.findByConditionIdIn(dto.getPaymentConditionIds());
-        room.setPaymentConditions(new java.util.HashSet<>(paymentConditions));
+        if (!paymentConditions.isEmpty()) {
+            room.setPaymentConditions(new java.util.HashSet<>(paymentConditions));
+        }
+        
         roomRepo.save(room);
         return room.getRoomId();
     }
