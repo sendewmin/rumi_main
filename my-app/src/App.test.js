@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react';
 // This code is the help the jest to help understand the swiper js code and modules.
 // Mock Swiper components
 
-jest.mock('swiper-react', () => ({
+jest.mock('swiper/react', () => ({
   Swiper: ({ children }) => <div data-testid="swiper-mock">{children}</div>,
   SwiperSlide: ({ children }) => <div data-testid="swiper-slide-mock">{children}</div>,
 }));
