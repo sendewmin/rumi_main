@@ -36,7 +36,20 @@ public class RoomServiceImpl implements RoomService {
     public Long createRoom(RoomCreateRequest dto, String authHeader) {
         // Get authenticated user
         String userId = supabaseAuthService.getUserId(authHeader);
-        User user = userRepo.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+        User user = userRepo.findById(userId).orElseGet(() -> {
+            // Auto-create user if not found (for users who logged in but have no profile)
+            User newUser = new User();
+            newUser.setSupabaseUid(userId);
+            newUser.setEmail("user-" + userId.substring(0, 8) + "@rumi.local");
+            newUser.setFull_name("Landlord");
+            newUser.setPhone_number("0000000000");
+            newUser.setRole(RoleName.RENTER);
+            newUser.setStatus(UserStatus.ACTIVE);
+            newUser.setPhone_verified(false);
+            newUser.setProfile_complete(false);
+            return userRepo.save(newUser);
+        });
+        
         if (user.getRole() != RoleName.RENTER) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only renters can create rooms");
         }
