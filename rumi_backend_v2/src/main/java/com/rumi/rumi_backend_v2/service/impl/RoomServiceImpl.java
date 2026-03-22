@@ -6,6 +6,7 @@ import com.rumi.rumi_backend_v2.dto.RoomUpdateRequest;
 import com.rumi.rumi_backend_v2.entity.*;
 import com.rumi.rumi_backend_v2.enums.RoleName;
 import com.rumi.rumi_backend_v2.enums.RoomStatus;
+import com.rumi.rumi_backend_v2.enums.UserStatus;
 import com.rumi.rumi_backend_v2.repo.*;
 import com.rumi.rumi_backend_v2.service.RoomService;
 import com.rumi.rumi_backend_v2.util.SupabaseAuthService;
@@ -38,15 +39,16 @@ public class RoomServiceImpl implements RoomService {
         String userId = supabaseAuthService.getUserId(authHeader);
         User user = userRepo.findById(userId).orElseGet(() -> {
             // Auto-create user if not found (for users who logged in but have no profile)
-            User newUser = new User();
-            newUser.setSupabaseUid(userId);
-            newUser.setEmail("user-" + userId.substring(0, 8) + "@rumi.local");
-            newUser.setFull_name("Landlord");
-            newUser.setPhone_number("0000000000");
-            newUser.setRole(RoleName.RENTER);
-            newUser.setStatus(UserStatus.ACTIVE);
-            newUser.setPhone_verified(false);
-            newUser.setProfile_complete(false);
+            User newUser = User.builder()
+                    .supabaseUid(userId)
+                    .email("user-" + userId.substring(0, 8) + "@rumi.local")
+                    .full_name("Landlord")
+                    .phone_number("0000000000")
+                    .role(RoleName.RENTER)
+                    .status(UserStatus.ACTIVE)
+                    .phone_verified(false)
+                    .profile_complete(false)
+                    .build();
             return userRepo.save(newUser);
         });
         

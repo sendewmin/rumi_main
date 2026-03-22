@@ -102,6 +102,7 @@ public class RoomDetail {
     @Setter
     @Getter
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name="room_type", nullable = false)
     private RoomType roomType;
 

@@ -85,6 +85,7 @@ const LandlordDashboard = () => {
     genderAllowed: 'UNSPECIFIED',
     maxRoommates: 1,
     roomStatus: 'AVAILABLE',
+    roomType: 'STUDIO',
     houseNumber: '',
     addressLine: '',
     city: '',
@@ -150,6 +151,7 @@ const LandlordDashboard = () => {
         genderAllowed: formData.genderAllowed,
         maxRoommates: parseInt(formData.maxRoommates) || 1,
         roomStatus: formData.roomStatus,
+        roomType: formData.roomType,
         address: {
           houseNumber: parseInt(formData.houseNumber) || 1,
           addressLine: formData.addressLine || 'N/A',
@@ -198,6 +200,7 @@ const LandlordDashboard = () => {
         genderAllowed: 'UNSPECIFIED',
         maxRoommates: 1,
         roomStatus: 'AVAILABLE',
+        roomType: 'STUDIO',
         houseNumber: '',
         addressLine: '',
         city: '',
@@ -322,11 +325,20 @@ const LandlordDashboard = () => {
                     max="10"
                   />
                 </div>
-                <select name="roomStatus" value={formData.roomStatus} onChange={handleInputChange}>
-                  <option value="AVAILABLE">Status: Available</option>
-                  <option value="OCCUPIED">Occupied</option>
-                  <option value="MAINTENANCE">Maintenance</option>
-                </select>
+                <div className="ld-form-row-full">
+                  <select name="roomStatus" value={formData.roomStatus} onChange={handleInputChange}>
+                    <option value="AVAILABLE">Status: Available</option>
+                    <option value="OCCUPIED">Occupied</option>
+                    <option value="MAINTENANCE">Maintenance</option>
+                  </select>
+                  <select name="roomType" value={formData.roomType} onChange={handleInputChange}>
+                    <option value="STUDIO">Room Type: Studio</option>
+                    <option value="APARTMENT">Apartment</option>
+                    <option value="ANNEX">Annex</option>
+                    <option value="HOUSE">House</option>
+                    <option value="BOARDING">Boarding</option>
+                  </select>
+                </div>
               </fieldset>
 
               {/* Location */}
