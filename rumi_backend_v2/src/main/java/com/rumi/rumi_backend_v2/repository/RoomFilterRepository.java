@@ -24,8 +24,22 @@ public interface RoomFilterRepository extends JpaRepository<RoomDetail, Long> {
         AND (:maxPrice IS NULL OR rp.amount <= CAST(:maxPrice AS INTEGER))
         AND (:genderAllowed IS NULL OR rd.gender_allowed = CAST(:genderAllowed AS gender_allowed))
         AND (:roomStatus IS NULL OR rd.room_status = CAST(:roomStatus AS room_status))
-        AND (:roomType IS NULL OR rd.room_type = CAST(:roomType AS room_type))
-    """, nativeQuery = true)
+        AND (:roomType IS NULL OR rd.room_type = CAST(:roomType AS VARCHAR))
+    """,
+            countQuery = """
+        SELECT COUNT(*)
+        FROM room_detail rd
+        JOIN address a ON a.room_id = rd.room_id
+        JOIN room_price rp ON rp.room_id = rd.room_id
+        WHERE (:city IS NULL OR LOWER(a.city) = LOWER(:city))
+        AND (:country IS NULL OR LOWER(a.country) = LOWER(:country))
+        AND (:minPrice IS NULL OR rp.amount >= CAST(:minPrice AS INTEGER))
+        AND (:maxPrice IS NULL OR rp.amount <= CAST(:maxPrice AS INTEGER))
+        AND (:genderAllowed IS NULL OR rd.gender_allowed = CAST(:genderAllowed AS gender_allowed))
+        AND (:roomStatus IS NULL OR rd.room_status = CAST(:roomStatus AS room_status))
+        AND (:roomType IS NULL OR rd.room_type = CAST(:roomType AS VARCHAR))
+    """,
+            nativeQuery = true)
     Page<Object[]> filterRoomsNative(
             @Param("city") String city,
             @Param("country") String country,
