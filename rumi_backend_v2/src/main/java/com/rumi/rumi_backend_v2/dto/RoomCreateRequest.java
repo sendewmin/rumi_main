@@ -17,23 +17,16 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoomCreateRequest {
-    @NotBlank
+    @NotBlank(message = "Room title is required")
     private String roomTitle;
-    @NotBlank
+    @NotBlank(message = "Room description is required")
     private String roomDescription;
-    @NotNull
     private GenderAllowed genderAllowed;
-    @Min(1)
     private int maxRoommates;
     @Builder.Default
     private RoomStatus roomStatus = RoomStatus.AVAILABLE;
-    @NotNull
     private RoomType roomType;
-    @Valid
-    @NotNull
     private AddressDto address;
-    @Valid
-    @NotNull
     private PriceDto price;
     private List<Long> amenityIds;
     private List<Long> ruleIds;
@@ -44,13 +37,9 @@ public class RoomCreateRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class AddressDto {
-        @NotNull
         private Integer houseNumber;
-        @NotBlank
         private String addressLine;
-        @NotBlank
         private String city;
-        @NotBlank
         private String country;
         private String mapUrl;
     }
@@ -60,11 +49,8 @@ public class RoomCreateRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class PriceDto {
-        @NotNull
         private Integer amount;
-        @NotNull
         private Integer advance;
-        @NotNull
         private BillingCycle billingCycle;
     }
 }

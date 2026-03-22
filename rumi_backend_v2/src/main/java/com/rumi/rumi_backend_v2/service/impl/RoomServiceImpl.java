@@ -62,30 +62,34 @@ public class RoomServiceImpl implements RoomService {
         room.setRoomTitle(dto.getRoomTitle());
         room.setRoomDescription(dto.getRoomDescription());
         room.setGenderAllowed(dto.getGenderAllowed());
-        room.setMaxRoommates(dto.getMaxRoommates());
+        room.setMaxRoommates(dto.getMaxRoommates() > 0 ? dto.getMaxRoommates() : 1);
         room.setRoomStatus(dto.getRoomStatus() != null ? dto.getRoomStatus() : RoomStatus.AVAILABLE);
         room.setRoomType(dto.getRoomType());
         room = roomRepo.save(room);
         
-        // Address
-        Address address = new Address();
-        RoomCreateRequest.AddressDto a = dto.getAddress();
-        address.setRoom(room);
-        address.setHouseNumber(a.getHouseNumber());
-        address.setAddressLine(a.getAddressLine());
-        address.setCity(a.getCity());
-        address.setCountry(a.getCountry());
-        address.setMapUrl(a.getMapUrl());
-        addressRepo.save(address);
+        // Address - handle null case
+        if (dto.getAddress() != null) {
+            Address address = new Address();
+            RoomCreateRequest.AddressDto a = dto.getAddress();
+            address.setRoom(room);
+            address.setHouseNumber(a.getHouseNumber() != null ? a.getHouseNumber() : 1);
+            address.setAddressLine(a.getAddressLine() != null ? a.getAddressLine() : "N/A");
+            address.setCity(a.getCity() != null ? a.getCity() : "Unknown");
+            address.setCountry(a.getCountry() != null ? a.getCountry() : "Unknown");
+            address.setMapUrl(a.getMapUrl());
+            addressRepo.save(address);
+        }
         
-        // Price
-        RoomPrice price = new RoomPrice();
-        RoomCreateRequest.PriceDto p = dto.getPrice();
-        price.setRoom(room);
-        price.setAmount(p.getAmount());
-        price.setAdvance(p.getAdvance());
-        price.setBillingCycle(p.getBillingCycle());
-        roomPriceRepo.save(price);
+        // Price - handle null case
+        if (dto.getPrice() != null) {
+            RoomPrice price = new RoomPrice();
+            RoomCreateRequest.PriceDto p = dto.getPrice();
+            price.setRoom(room);
+            price.setAmount(p.getAmount() != null ? p.getAmount() : 0);
+            price.setAdvance(p.getAdvance() != null ? p.getAdvance() : 0);
+            price.setBillingCycle(p.getBillingCycle() != null ? p.getBillingCycle() : com.rumi.rumi_backend_v2.enums.BillingCycle.MONTHLY);
+            roomPriceRepo.save(price);
+        }
         
         // Amenities
         if (dto.getAmenityIds() != null && !dto.getAmenityIds().isEmpty()) {
