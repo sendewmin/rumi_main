@@ -102,7 +102,7 @@ public class RoomDetail {
     @Setter
     @Getter
     @Enumerated(EnumType.STRING)
-    @Column(name="room_type", columnDefinition = "room_type", nullable = false)
+    @Column(name="room_type", nullable = false)
     private RoomType roomType;
 
     public void setRenter(User renter) {
