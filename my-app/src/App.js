@@ -14,6 +14,7 @@ import HowItWorks from "./components/HowItWorks";
 import RoomShareListing from "./room_share_lisiting/page/sharelisting";
 import RoomSharePostPage from "./room_share_lisiting/page/RoomSharePostPage";
 import VerifyEmail from "./auth/VerifyEmail";
+import Chatbot from './chatbot/chatbot';
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -68,6 +69,7 @@ function App() {
   return (
     <BrowserRouter>
       <AppRoutes />
+      <Chatbot />
     </BrowserRouter>
   );
 }

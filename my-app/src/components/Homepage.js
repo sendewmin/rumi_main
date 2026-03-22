@@ -27,6 +27,7 @@ import Footer from "./Footer";
 import "./HomepageModern.css";
 import { supabase } from "../auth/supabaseClient";
 import { useAuth } from "../auth/AuthContext";
+import Chatbot from '../chatbot/chatbot';           // ← add this
 
 const HomeStatement = Home_statement;
 
@@ -732,6 +733,7 @@ export default function Homepage() {
 
       {/* ── Footer — outside hp-container so it spans full width ── */}
       <Footer />
+      <Chatbot />
     </>
   );
 }
