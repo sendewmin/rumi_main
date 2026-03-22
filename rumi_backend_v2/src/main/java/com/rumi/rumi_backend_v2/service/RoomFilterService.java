@@ -27,9 +27,9 @@ public class RoomFilterService {
             RoomType roomType,
             Pageable pageable
     ) {
-        String genderStr = genderAllowed != null ? genderAllowed.name() : null;
-        String statusStr = roomStatus != null ? roomStatus.name() : null;
-        String roomTypeStr = roomType != null ? roomType.name() : null;
+        String genderStr   = genderAllowed != null ? genderAllowed.name() : null;
+        String statusStr   = roomStatus    != null ? roomStatus.name()    : null;
+        String roomTypeStr = roomType      != null ? roomType.name()      : null;
 
         Page<Object[]> results = roomFilterRepository.filterRoomsNative(
                 city, country, minPrice, maxPrice, genderStr, statusStr, roomTypeStr, pageable
@@ -39,15 +39,15 @@ public class RoomFilterService {
                 ((Number) row[0]).longValue(),
                 (String) row[1],
                 (String) row[2],
-                GenderAllowed.valueOf((String) row[3]),
-                RoomStatus.valueOf((String) row[4]),
-                ((Number) row[5]).intValue(),
+                row[3] != null ? GenderAllowed.valueOf((String) row[3]) : null,
+                row[4] != null ? RoomStatus.valueOf((String) row[4])    : null,
+                row[5] != null ? ((Number) row[5]).intValue()           : 0,
                 (String) row[6],
                 (String) row[7],
                 (String) row[8],
-                ((Number) row[9]).intValue(),
-                BillingCycle.valueOf((String) row[10]),
-                row[11] != null ? RoomType.valueOf((String) row[11]) : null
+                row[9]  != null ? ((Number) row[9]).intValue()          : 0,
+                row[10] != null ? BillingCycle.valueOf((String) row[10]): null,
+                row[11] != null ? RoomType.valueOf((String) row[11])    : null
         ));
     }
 
