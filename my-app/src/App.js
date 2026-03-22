@@ -12,6 +12,7 @@ import ListingPage from "./room_listing/listing_page";
 import BrowseRooms from "./components/BrowseRooms";
 import HowItWorks from "./components/HowItWorks";
 import RoomShareListing from "./room_share_lisiting/page/sharelisting";
+import VerifyEmail from "./auth/VerifyEmail";
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -27,6 +28,7 @@ function AppRoutes() {
       <Route path="/how-it-works" element={<HowItWorks />} />
       <Route path="/share" element={<RoomShareListing />} />
       <Route path="/listing/:id" element={<ListingPage />} />
+      <Route path="/verify" element={<VerifyEmail />} />
 
       {/* Auth routes — redirect to / if already logged in */}
       <Route
