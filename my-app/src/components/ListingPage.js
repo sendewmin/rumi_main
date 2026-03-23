@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { mockRooms } from './mockRooms';
 import RoomCard from './RoomCard';
+import { createBooking, checkExistingBooking } from './rating_system/services/bookingService';
 import './ListingPage.css';
 
 /* ── Amenity icon map ── */
@@ -102,6 +103,9 @@ const ListingPage = () => {
   const [activeImg, setActiveImg]     = useState(0);
   const [contacted, setContacted]     = useState(false);
   const [shareMsg, setShareMsg]       = useState('');
+  const [isBooking, setIsBooking]     = useState(false);
+  const [bookingMsg, setBookingMsg]   = useState('');
+  const [booked, setBooked]           = useState(false);
 
   /* ── Nearby rooms ── */
   const similar = mockRooms.filter(r => r.id !== Number(id)).slice(0, 3);
@@ -111,6 +115,31 @@ const ListingPage = () => {
     navigator.clipboard?.writeText(window.location.href).catch(() => {});
     setShareMsg('Link copied!');
     setTimeout(() => setShareMsg(''), 2200);
+  };
+
+  /* ── Book Room ── */
+  const handleBook = async () => {
+    // For now, using a mock user ID. Replace with actual user from auth.
+    const mockUserId = 1;
+
+    setIsBooking(true);
+    try {
+      const result = await createBooking(mockUserId, room.id);
+
+      if (result) {
+        setBooked(true);
+        setBookingMsg('✓ Room booked successfully!');
+        setTimeout(() => setBookingMsg(''), 3000);
+      } else {
+        setBookingMsg('Failed to book room. Please try again.');
+        setTimeout(() => setBookingMsg(''), 3000);
+      }
+    } catch (error) {
+      setBookingMsg('Error booking room. Please try again.');
+      setTimeout(() => setBookingMsg(''), 3000);
+    } finally {
+      setIsBooking(false);
+    }
   };
 
   /* ── 404 ── */
@@ -293,14 +322,21 @@ const ListingPage = () => {
               {room.available ? (
                 <>
                   <button
-                    className={`lst-cta-btn${contacted ? ' done' : ''}`}
-                    onClick={() => setContacted(true)}
+                    className={`lst-cta-btn${booked ? ' done' : ''}`}
+                    onClick={handleBook}
+                    disabled={isBooking || booked}
+                    aria-busy={isBooking}
                   >
-                    {contacted ? '✓ Request Sent!' : 'Request to View'}
+                    {isBooking ? '⏳ Booking...' : booked ? '✓ Booked!' : 'Book Now'}
                   </button>
-                  {contacted && (
-                    <p className="lst-cta-msg">
-                      The landlord will contact you shortly.
+                  {bookingMsg && (
+                    <p className={`lst-cta-msg ${booked ? 'success' : 'error'}`}>
+                      {bookingMsg}
+                    </p>
+                  )}
+                  {booked && (
+                    <p className="lst-cta-msg success">
+                      Confirmation has been sent. You can now rate this room.
                     </p>
                   )}
                 </>
