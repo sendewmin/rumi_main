@@ -1,8 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, memo, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { mockRooms } from './mockRooms';
+
 import RoomCard from './RoomCard';
+import axiosClient from '../api/rumi_client';
+import supabase from '../api/supabaseClient';
+import { createBooking, checkExistingBooking } from './rating_system/services/bookingService';
+import { useAuth } from '../auth/AuthContext';
+import Footer from './Footer';
 import './ListingPage.css';
+
+// Lazy load heavy components
+const RateRoom = lazy(() => import('./rating_system/component/rateRoom'));
+const RatingDisplay = lazy(() => import('./rating_system/component/ratingDisplay'));
 
 /* ── Amenity icon map ── */
 const amenityIcons = {
@@ -96,15 +105,148 @@ const StarRating = ({ rating, size = 'md' }) => {
 const ListingPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user, profile, loading: authLoading } = useAuth();
 
-  const room = mockRooms.find(r => r.id === Number(id));
+  // States for room data and images
+  const [room, setRoom] = useState(null);
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [similar, setSimilar] = useState([]);
 
   const [activeImg, setActiveImg]     = useState(0);
   const [contacted, setContacted]     = useState(false);
   const [shareMsg, setShareMsg]       = useState('');
+  const [isBooking, setIsBooking]     = useState(false);
+  const [bookingMsg, setBookingMsg]   = useState('');
+  const [booked, setBooked]           = useState(false);
+  const [userReview, setUserReview]   = useState(null);
+  
+  // Check if user is tenant
+  const isTenant = profile?.role === 'Tenant' || profile?.role === 'RENTEE';
+  const canReview = user && isTenant && booked;
 
-  /* ── Nearby rooms ── */
-  const similar = mockRooms.filter(r => r.id !== Number(id)).slice(0, 3);
+  // Normalize room data from Supabase to match UI expectations
+  const normalizeRoomData = (rawData) => {
+    if (!rawData) return null;
+    return {
+      ...rawData,
+      roomid: rawData.roomid,  // Explicitly preserve the database roomid (BIGINT)
+      id: rawData.id,           // Explicitly preserve the database id (BIGSERIAL)
+      roomTitle: rawData.roomtitle || rawData.title || 'Unnamed Room',
+      roomDescription: rawData.roomdescription || rawData.description || '',
+      roomStatus: rawData.roomstatus || 'AVAILABLE',
+      amount: rawData.amount || rawData.price || 0,
+      maxRoommates: rawData.maxroommates || 1,
+      roomType: rawData.roomtype || 'Apartment',
+      allergies: rawData.allergies || [],
+      amenities: rawData.amenities || [],
+      address: rawData.address || {
+        addressLine: rawData.addressline || '',
+        city: rawData.city || '',
+        country: rawData.country || ''
+      },
+      renter: rawData.renter || {
+        full_name: rawData.rentername || 'Landlord',
+        profileImage: rawData.renterimage || ''
+      },
+      avgRating: rawData.avgrating || 0,
+      totalReviews: rawData.totalreviews || 0
+    };
+  };
+
+  // Fetch room data directly from Supabase
+  useEffect(() => {
+    const fetchRoomData = async () => {
+      try {
+        setLoading(true);
+        
+        // Get roomId from URL param
+        const roomIdStr = String(id).trim();
+        const roomId = parseInt(roomIdStr, 10);
+        
+        console.log('Fetching room - URL id:', id, 'parsed roomId:', roomId);
+
+        // Query Supabase for the room
+        const { data: roomsData, error: queryError } = await supabase
+          .from('rooms')
+          .select('*')
+          .eq('roomid', roomId);
+
+        if (queryError || !roomsData || roomsData.length === 0) {
+          console.error('Room not found:', { roomId, queryError });
+          setError('Room not found');
+          setLoading(false);
+          return;
+        }
+
+        const rawRoomData = roomsData[0];
+        const roomData = normalizeRoomData(rawRoomData);
+        setRoom(roomData);
+        console.log('✓ Fetched room:', roomData);
+
+        // Fetch images from Supabase Storage
+        // Use the actual roomid from the database, not the URL param
+        const actualRoomId = rawRoomData.roomid || roomId;
+        console.log('🖼️ Fetching images for roomId:', actualRoomId);
+        
+        try {
+          const { data: storageFiles, error: storageError } = await supabase.storage
+            .from('RoomImages')
+            .list(String(actualRoomId), {
+              limit: 100,
+              offset: 0,
+              sortBy: { column: 'name', order: 'asc' }
+            });
+
+          console.log('Storage response:', { storageError, fileCount: storageFiles?.length });
+
+          if (!storageError && storageFiles && storageFiles.length > 0) {
+            const fileUrls = storageFiles.map(file => {
+              const { data: urlData } = supabase.storage
+                .from('RoomImages')
+                .getPublicUrl(`${actualRoomId}/${file.name}`);
+              console.log('Image URL:', urlData?.publicUrl);
+              return urlData?.publicUrl;
+            }).filter(url => url);
+
+            console.log('✓ Found', fileUrls.length, 'images');
+            setImages(fileUrls.length > 0 ? fileUrls : ['https://via.placeholder.com/800x600?text=Room+Image']);
+          } else {
+            console.warn('No images found in storage');
+            setImages(['https://via.placeholder.com/800x600?text=Room+Image']);
+          }
+        } catch (imgErr) {
+          console.warn('Could not fetch images:', imgErr);
+          setImages(['https://via.placeholder.com/800x600?text=Room+Image']);
+        }
+
+        // Check if already booked
+        if (user) {
+          const { data: bookingData, error: bookingError } = await supabase
+            .from('bookings')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('room_id', roomId);
+
+          if (!bookingError && bookingData && bookingData.length > 0) {
+            setBooked(true);
+          }
+        }
+
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching room:', err);
+        setError(`Error: ${err.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (!authLoading) {
+      fetchRoomData();
+    }
+  }, [id, user, authLoading]);
 
   /* ── Share ── */
   const handleShare = () => {
@@ -113,7 +255,77 @@ const ListingPage = () => {
     setTimeout(() => setShareMsg(''), 2200);
   };
 
-  /* ── 404 ── */
+  /* ── Book Room ── */
+  const handleBook = async () => {
+    if (!user) {
+      alert('Please log in to book a room');
+      navigate('/login');
+      return;
+    }
+
+    if (!isTenant) {
+      alert('Only tenants can book rooms. Please sign up as a tenant.');
+      navigate('/signup/tenant');
+      return;
+    }
+
+    setIsBooking(true);
+    try {
+      const effectiveRoomId = room.roomid || room.id || room.roomId;
+      console.log('Booking params - userId:', user.id, 'type:', typeof user.id);
+      console.log('Booking params - roomId candidates:', { 'room.roomid': room.roomid, 'room.id': room.id, 'room.roomId': room.roomId });
+      console.log('Effective roomId:', effectiveRoomId, 'type:', typeof effectiveRoomId);
+      
+      if (!user.id) {
+        setBookingMsg('Error: User ID not found. Please log in again.');
+        setTimeout(() => setBookingMsg(''), 3000);
+        setIsBooking(false);
+        return;
+      }
+
+      if (!effectiveRoomId) {
+        setBookingMsg('Error: Room ID not found.');
+        setTimeout(() => setBookingMsg(''), 3000);
+        setIsBooking(false);
+        return;
+      }
+
+      const result = await createBooking(user.id, effectiveRoomId);
+
+      if (result && result.length > 0) {
+        setBooked(true);
+        setBookingMsg('✓ Room booked successfully!');
+        setTimeout(() => setBookingMsg(''), 3000);
+      } else {
+        console.error('Booking failed - no result data returned');
+        setBookingMsg('Failed to book room. Please check the console and try again.');
+        setTimeout(() => setBookingMsg(''), 5000);
+      }
+    } catch (error) {
+      console.error('Error booking room:', error);
+      const errorMsg = error.message || error.toString();
+      setBookingMsg(`Error: ${errorMsg}`);
+      setTimeout(() => setBookingMsg(''), 5000);
+    } finally {
+      setIsBooking(false);
+    }
+  };
+
+  /* ── Loading ── */
+  if (loading) {
+    return (
+      <div className="lst-shell">
+        <div className="lst-container">
+          <div className="lst-notfound">
+            <p className="lst-notfound-icon">⏳</p>
+            <h2>Loading room details...</h2>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── 404 / Not Found ── */
   if (!room) {
     return (
       <div className="lst-shell">
@@ -122,6 +334,7 @@ const ListingPage = () => {
             <p className="lst-notfound-icon">🔍</p>
             <h2>Listing not found</h2>
             <p>The room you're looking for doesn't exist or has been removed.</p>
+            {error && <p style={{fontSize: '0.9rem', color: '#999'}}>Error: {error}</p>}
             <button className="lst-back-inline" onClick={() => navigate('/home')}>
               Back to Home
             </button>
@@ -131,12 +344,8 @@ const ListingPage = () => {
     );
   }
 
-  const landlordInitials = room.landlord.name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+  const landlordName = room.renter?.full_name || 'Landlord';
+  const landlordInitials = landlordName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
   return (
     <div className="lst-shell">
@@ -164,27 +373,27 @@ const ListingPage = () => {
         <div className="lst-gallery">
           <div className="lst-gallery-main" onClick={() => {}}>
             <img
-              src={room.images[activeImg]}
-              alt={`${room.title} — photo ${activeImg + 1}`}
+              src={images.length > 0 ? images[activeImg] : 'https://via.placeholder.com/800x600?text=No+Image'}
+              alt={`${room.roomTitle} — photo ${activeImg + 1}`}
               className="lst-gallery-main-img"
             />
-            {room.images.length > 1 && (
+            {images.length > 1 && (
               <span className="lst-gallery-count-pill">
-                📷 {room.images.length} photos
+                📷 {images.length} photos
               </span>
             )}
           </div>
 
-          {room.images.length > 1 && (
+          {images.length > 1 && (
             <div className="lst-gallery-thumbs">
-              {room.images.slice(1, 3).map((img, i) => (
+              {images.slice(1, 3).map((img, i) => (
                 <button
                   key={i}
                   className={`lst-thumb${activeImg === i + 1 ? ' active' : ''}`}
                   onClick={() => setActiveImg(i + 1)}
                   aria-label={`View photo ${i + 2}`}
                 >
-                  <img src={img} alt={`${room.title} thumbnail ${i + 2}`} loading="lazy" />
+                  <img src={img} alt={`${room.roomTitle} thumbnail ${i + 2}`} loading="lazy" />
                 </button>
               ))}
             </div>
@@ -200,33 +409,25 @@ const ListingPage = () => {
             {/* Title + badges */}
             <div className="lst-title-section">
               <div className="lst-title-row">
-                <h1 className="lst-title">{room.title}</h1>
-                <span className={`lst-avail-badge ${room.available ? 'avail' : 'unavail'}`}>
-                  {room.available ? '● Available' : '● Unavailable'}
+                <h1 className="lst-title">{room.roomTitle}</h1>
+                <span className={`lst-avail-badge ${room.roomStatus === 'AVAILABLE' ? 'avail' : 'unavail'}`}>
+                  {room.roomStatus === 'AVAILABLE' ? '● Available' : `● ${room.roomStatus}`}
                 </span>
               </div>
-              <p className="lst-location">
-                <IconPin />
-                {room.location}
-              </p>
+              {room.address && (
+                <p className="lst-location">
+                  <IconPin />
+                  {`${room.address.addressLine || ''}, ${room.address.city || 'Unknown'}, ${room.address.country || ''}`}
+                </p>
+              )}
 
               <div className="lst-meta-chips">
                 <span className="lst-meta-chip">
-                  <IconBed /> {room.bedrooms} Bedroom{room.bedrooms !== 1 ? 's' : ''}
+                  <IconBed /> {room.maxRoommates || 1} Max Roommate{room.maxRoommates !== 1 ? 's' : ''}
                 </span>
-                <span className="lst-meta-chip">
-                  <IconBath /> {room.bathrooms} Bathroom{room.bathrooms !== 1 ? 's' : ''}
-                </span>
-                <span className="lst-meta-chip">
-                  <IconRuler /> {room.sqft.toLocaleString()} sq ft
-                </span>
-                <span className="lst-meta-chip lst-type-chip">{room.type}</span>
-              </div>
-
-              <div className="lst-rating-row">
-                <StarRating rating={room.rating} size="lg" />
-                <span className="lst-rating-val">{room.rating}</span>
-                <span className="lst-rating-count">({room.reviews} reviews)</span>
+                {room.roomType && (
+                  <span className="lst-meta-chip lst-type-chip">{room.roomType}</span>
+                )}
               </div>
             </div>
 
@@ -235,7 +436,7 @@ const ListingPage = () => {
             {/* About */}
             <div className="lst-section">
               <h2 className="lst-section-title">About this space</h2>
-              <p className="lst-description">{room.description}</p>
+              <p className="lst-description">{room.roomDescription}</p>
             </div>
 
             <div className="lst-divider" />
@@ -244,14 +445,18 @@ const ListingPage = () => {
             <div className="lst-section">
               <h2 className="lst-section-title">Amenities</h2>
               <div className="lst-amenities-grid">
-                {room.amenities.map(a => (
-                  <div className="lst-amenity" key={a}>
-                    <span className="lst-amenity-icon" aria-hidden="true">
-                      {amenityIcons[a] || '✅'}
-                    </span>
-                    <span className="lst-amenity-label">{a}</span>
-                  </div>
-                ))}
+                {room.amenities && room.amenities.length > 0 ? (
+                  room.amenities.map(a => (
+                    <div className="lst-amenity" key={a.amenityId || a.name}>
+                      <span className="lst-amenity-icon" aria-hidden="true">
+                        {amenityIcons[a.name] || '✅'}
+                      </span>
+                      <span className="lst-amenity-label">{a.name}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p style={{ gridColumn: '1 / -1', color: '#999' }}>No amenities listed</p>
+                )}
               </div>
             </div>
 
@@ -261,12 +466,16 @@ const ListingPage = () => {
             <div className="lst-section">
               <h2 className="lst-section-title">House Rules</h2>
               <ul className="lst-rules-list">
-                {room.rules.map(rule => (
-                  <li className="lst-rule" key={rule}>
-                    <span className="lst-rule-icon"><IconCheck /></span>
-                    {rule}
-                  </li>
-                ))}
+                {room.rules && room.rules.length > 0 ? (
+                  room.rules.map(rule => (
+                    <li className="lst-rule" key={rule.ruleId || rule.ruleName}>
+                      <span className="lst-rule-icon"><IconCheck /></span>
+                      {rule.ruleName || rule}
+                    </li>
+                  ))
+                ) : (
+                  <li className="lst-rule" style={{ color: '#999' }}>No specific rules listed</li>
+                )}
               </ul>
             </div>
 
@@ -280,27 +489,30 @@ const ListingPage = () => {
               <div className="lst-price-top">
                 <div>
                   <span className="lst-sidebar-price">
-                    LKR {room.price.toLocaleString('en-LK')}
+                    {room.price ? `LKR ${room.price.amount?.toLocaleString('en-LK') || 'N/A'}` : 'Price on request'}
                   </span>
-                  <span className="lst-sidebar-per"> / month</span>
-                </div>
-                <div className="lst-sidebar-rating">
-                  <span className="lst-star-sm">★</span>
-                  <span className="lst-rating-sm">{room.rating}</span>
+                  <span className="lst-sidebar-per"> / {room.price?.billingCycle?.toLowerCase() || 'month'}</span>
                 </div>
               </div>
 
-              {room.available ? (
+              {room.roomStatus === 'AVAILABLE' ? (
                 <>
                   <button
-                    className={`lst-cta-btn${contacted ? ' done' : ''}`}
-                    onClick={() => setContacted(true)}
+                    className={`lst-cta-btn${booked ? ' done' : ''}`}
+                    onClick={handleBook}
+                    disabled={isBooking || booked}
+                    aria-busy={isBooking}
                   >
-                    {contacted ? '✓ Request Sent!' : 'Request to View'}
+                    {isBooking ? '⏳ Booking...' : booked ? '✓ Booked!' : 'Book Now'}
                   </button>
-                  {contacted && (
-                    <p className="lst-cta-msg">
-                      The landlord will contact you shortly.
+                  {bookingMsg && (
+                    <p className={`lst-cta-msg ${booked ? 'success' : 'error'}`}>
+                      {bookingMsg}
+                    </p>
+                  )}
+                  {booked && (
+                    <p className="lst-cta-msg success">
+                      Confirmation has been sent. You can now rate this room.
                     </p>
                   )}
                 </>
@@ -321,8 +533,8 @@ const ListingPage = () => {
                   <IconUser />
                 </div>
                 <div>
-                  <p className="lst-landlord-name">{room.landlord.name}</p>
-                  <p className="lst-landlord-since">Member since {room.landlord.joined}</p>
+                <p className="lst-landlord-name">{landlordName}</p>
+                  <p className="lst-landlord-since">Contact: {room.renter?.phone_number || 'Available on request'}</p>
                 </div>
               </div>
               <button
@@ -333,22 +545,69 @@ const ListingPage = () => {
               </button>
             </div>
 
+            {/* Rating Display */}
+            {room && (
+              <div className="lst-rating-display">
+                <h3 className="lst-section-title">Room Ratings</h3>
+                <Suspense fallback={<p style={{color: '#999'}}>Loading ratings...</p>}>
+                  <RatingDisplay roomId={room.roomid || room.id || id} />
+                </Suspense>
+              </div>
+            )}
           </aside>
         </div>
 
-        {/* ── Similar Rooms ── */}
-        <div className="lst-similar-section">
-          <div className="lst-similar-hd">
-            <h2 className="lst-similar-title">Similar Rooms</h2>
-            <p className="lst-similar-desc">Other spaces you might like</p>
+        {/* ── Similar rooms ── */}
+        {similar.length > 0 && (
+          <div className="lst-divider">
+            <div className="lst-similar-section">
+              <h2 className="lst-similar-hd">Similar Rooms</h2>
+              <div className="lst-similar-grid">
+                {similar.map(r => (
+                  <RoomCard key={r.id} room={r} />
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="lst-similar-grid">
-            {similar.map(r => (
-              <RoomCard key={r.id} room={r} />
-            ))}
-          </div>
-        </div>
+        )}
 
+        {/* ── Authenticated Review Section ── */}
+        {room && (
+          <div className="lst-review-section">
+            {user && isTenant && booked ? (
+              // Logged in tenant who booked
+              <div className="lst-rating-form-section">
+                <h2 className="lst-section-title">Share Your Experience</h2>
+                <Suspense fallback={<p style={{color: '#999'}}>Loading review form...</p>}>
+                  <RateRoom roomId={room.roomid || room.id || id} userId={user.id} onReviewSubmitted={(review) => setUserReview(review)} />
+                </Suspense>
+              </div>
+            ) : !user ? (
+              // Not logged in
+              <div style={{ padding: '2rem', backgroundColor: '#f0f9ff', borderRadius: '12px', border: '1px solid #bfdbfe', textAlign: 'center' }}>
+                <h3 style={{ marginBottom: '1rem' }}>Want to share your review?</h3>
+                <p style={{ color: '#666', marginBottom: '1.5rem' }}>Log in as a tenant and book this room to leave a review.</p>
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button onClick={() => navigate('/login')} style={{ padding: '0.75rem 1.5rem', backgroundColor: '#1e293b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>Log In</button>
+                  <button onClick={() => navigate('/signup/tenant')} style={{ padding: '0.75rem 1.5rem', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>Sign Up</button>
+                </div>
+              </div>
+            ) : !isTenant ? (
+              // Logged in but not a tenant
+              <div style={{ padding: '2rem', backgroundColor: '#fef3c7', borderRadius: '12px', border: '1px solid #fcd34d', textAlign: 'center' }}>
+                <h3 style={{ marginBottom: '1rem' }}>Not a tenant yet?</h3>
+                <p style={{ color: '#666', marginBottom: '1.5rem' }}>Switch to a tenant account to book and review rooms.</p>
+                <button onClick={() => navigate('/signup/tenant')} style={{ padding: '0.75rem 1.5rem', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>Become a Tenant</button>
+              </div>
+            ) : user && isTenant && !booked ? (
+              // Logged in tenant but hasn't booked
+              <div style={{ padding: '2rem', backgroundColor: '#f5f3ff', borderRadius: '12px', border: '1px solid #ddd6fe', textAlign: 'center' }}>
+                <h3 style={{ marginBottom: '1rem' }}>Book first to review</h3>
+                <p style={{ color: '#666' }}>Book this room above to unlock the review feature and share your experience.</p>
+              </div>
+            ) : null}
+          </div>
+        )}
       </div>
     </div>
   );

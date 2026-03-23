@@ -1,6 +1,9 @@
 import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext";
+import { useEffect } from "react";
+import { clearAndReseedRooms } from "./api/supabaseDiagnostics";
+import DevHelper from "./components/DevHelper";
 
 import Homepage from "./components/Homepage";
 import LoginPage from "./components/LoginPage";
@@ -8,7 +11,7 @@ import TenantSignup from "./components/TenantSignup";
 import LandlordSignup from "./components/LandlordSignup";
 import AdminDashboard from "./components/AdminDashboard";
 import LandlordDashboard from "./components/LandlordDashboard";
-import ListingPage from "./room_listing/listing_page";
+import ListingPage from "./components/ListingPage";
 import BrowseRooms from "./components/BrowseRooms";
 import HowItWorks from "./components/HowItWorks";
 import RoomShareListing from "./room_share_lisiting/page/sharelisting";
@@ -18,6 +21,27 @@ import Chatbot from './chatbot/chatbot';
 
 function AppRoutes() {
   const { user, loading } = useAuth();
+
+  // 🚫 DISABLED: No longer clearing rooms on startup to preserve user-created listings
+  // useEffect(() => {
+  //   const initializeRooms = async () => {
+  //     try {
+  //       console.log('🚀 Initializing Supabase rooms on app startup...');
+  //       const result = await clearAndReseedRooms();
+  //       if (result.success) {
+  //         console.log('✓ Rooms initialized successfully');
+  //       } else {
+  //         console.warn('⚠️ Rooms initialization warning:', result.error);
+  //       }
+  //     } catch (err) {
+  //       console.error('❌ Failed to initialize rooms:', err);
+  //     }
+  //   };
+
+  //   // Wait a bit for Supabase to be ready
+  //   const timeout = setTimeout(initializeRooms, 1000);
+  //   return () => clearTimeout(timeout);
+  // }, []);
 
   if (loading)
     return <p style={{ textAlign: "center", marginTop: 80 }}>Loading...</p>;
@@ -69,7 +93,7 @@ function App() {
   return (
     <BrowserRouter>
       <AppRoutes />
-      <Chatbot />
+      <DevHelper />
     </BrowserRouter>
   );
 }

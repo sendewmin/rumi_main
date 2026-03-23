@@ -3,6 +3,7 @@
 import {Swiper,SwiperSlide} from 'swiper/react';
 
 import { useState,useEffect } from 'react';
+import { Image as ImageIcon } from 'lucide-react';
 
 
 // importing the swiper css 
@@ -28,20 +29,35 @@ function RoomSlider(){
 
     const [loading, setLoading] = useState(true)  // add loading state
 
+    // Mock images for demo/fallback
+    const mockImages = [
+      { imageId: 1, imageUrl: 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=900' },
+      { imageId: 2, imageUrl: 'https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=600' },
+      { imageId: 3, imageUrl: 'https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg?auto=compress&cs=tinysrgb&w=600' },
+    ];
+
     const handleFetch = async () => {
         try {
             const result = await imageApi.getImage(1) // here we call the getImage method in the imageApi the get endpoint fetch
             console.log("the result: "+result.data)
-            setFetchImg(result.data)  // In the state variable fetchImg we save the result data
+            if (result.data && result.data.length > 0) {
+              setFetchImg(result.data)  // In the state variable fetchImg we save the result data
+            } else {
+              // Use mock images if API returns empty
+              console.log("No images from API, using mock images")
+              setFetchImg(mockImages)
+            }
         } 
         catch (err) {
             console.log("error: "+err)
+            // Use mock images on error
+            setFetchImg(mockImages)
             if (err.response?.status === 404) {
-                setError("Room not found.")
+                setError("Room not found. Showing demo images.")
             } else if (err.response?.status === 500) {
-                setError("Server error. Please try again later.")
+                setError("Server error. Showing demo images.")
             } else {
-                setError("Failed to load images. Please try again later.") // This error state will be set if the image fetch failed
+                setError("") // Don't show error if we have mock images
             }   
         }
         finally{
@@ -72,27 +88,49 @@ function RoomSlider(){
                         </SwiperSlide>
                     )}
 
-                    {/* Error slide */}
+                    {/* Error slide - Show placeholder with icon */}
                     {!loading && error && (
                         <SwiperSlide>
-                            <div className="slider-message">
-                                <div className="slider-message-text">{error}</div>
+                            <div className="slider-message" style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                height: '100%',
+                                background: 'linear-gradient(135deg, #e3eeff 0%, #dce8ff 50%, #e8f0ff 100%)',
+                                gap: '1rem'
+                            }}>
+                                <ImageIcon size={64} color="#0057b8" strokeWidth={1.5} />
+                                <div className="slider-message-text" style={{color: '#0057b8', fontSize: '16px', fontWeight: 500}}>
+                                    {error}
+                                </div>
                             </div>
                         </SwiperSlide>
                     )}
 
-                    {/* No images slide */}
+                    {/* No images slide - Show placeholder with icon */}
                     {!loading && !error && fetchImg.length === 0 && (
                         <SwiperSlide>
-                            <div className='slider-message'>
-                                <div className="slider-message-text">No images available</div>
+                            <div className='slider-message' style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                height: '100%',
+                                background: 'linear-gradient(135deg, #e3eeff 0%, #dce8ff 50%, #e8f0ff 100%)',
+                                gap: '1rem'
+                            }}>
+                                <ImageIcon size={64} color="#0057b8" strokeWidth={1.5} />
+                                <div className="slider-message-text" style={{color: '#0057b8', fontSize: '16px', fontWeight: 500}}>
+                                    No images available
+                                </div>
                             </div>
                         </SwiperSlide>
                     )}
 
                     {fetchImg.length>0 && !error && !loading &&
                         fetchImg.map((img)=>(  // Map means we loop through the array and get the json object img
-                            <SwiperSlide key={img.image}
+                            <SwiperSlide key={img.imageId}
                                 style={{
                                     display:'flex',
                                     alignItems:'center',

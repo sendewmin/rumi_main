@@ -45,9 +45,10 @@ public class RoomFilterService {
                 (String) row[6],
                 (String) row[7],
                 (String) row[8],
-                row[9]  != null ? ((Number) row[9]).intValue()          : 0,
-                row[10] != null ? BillingCycle.valueOf((String) row[10]): null,
-                row[11] != null ? RoomType.valueOf((String) row[11])    : null
+                ((Number) row[9]).intValue(),
+                BillingCycle.valueOf((String) row[10]),
+                (String) row[11],
+                row[12] != null ? RoomType.valueOf((String) row[12])    : null
         ));
     }
 

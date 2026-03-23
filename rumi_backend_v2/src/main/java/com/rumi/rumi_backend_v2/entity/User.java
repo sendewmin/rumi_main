@@ -5,6 +5,8 @@ import com.rumi.rumi_backend_v2.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -20,6 +22,9 @@ public class User {
     @Getter
     @Column(name="user_id", nullable = false, unique = true)
     private String supabaseUid;
+    public String getUserId() {
+        return supabaseUid;
+    }
 
     @Getter
     @Setter
@@ -38,18 +43,19 @@ public class User {
 
     @Getter
     @Setter
-    // Role field using enum
+    // Role field using enum - PostgreSQL native enum type
     @Enumerated(EnumType.STRING)
-    @Column(name ="role",columnDefinition = "role_name",nullable = false)
-    // here we store only the enum value (Admin, Renter and Rentee)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "role", nullable = false)
+    // here we store only the enum value (ADMIN, RENTER, RENTEE)
     private RoleName role;
 
     @Getter
     @Setter
-    @Enumerated(EnumType.STRING)   // The enum value will be stored as String
-    // In SupaBase we ran a PostgreSQL query for the enum creation in the db and column definition to link it enum and column.
-    @Column(name="status",columnDefinition = "user_status",nullable = false)
-    // here we store only the enum value (Active, Inactive, Suspended, Deleted)
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name="status", nullable = false)
+    // here we store only the enum value (ACTIVE, INACTIVE, SUSPENDED, DELETED)
     private UserStatus status;
 
     @Getter

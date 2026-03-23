@@ -21,5 +21,6 @@ public class RoomFilterResponse {
     private String addressLine;
     private int amount;
     private BillingCycle billingCycle;
+    private String imageUrl;
     private RoomType roomType;
 }

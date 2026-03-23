@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Home, MapPin, Calendar, Users } from "lucide-react";
 import CreatePostForm from "../component/CreatePostForm";
 import roomSharePostApi from "../../api/roomSharePostApi";
 
@@ -7,6 +7,7 @@ const RoomSharePostPage = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => { fetchPosts(); }, []);
 
@@ -35,45 +36,21 @@ const RoomSharePostPage = () => {
         boxShadow: "0 2px 10px rgba(0,30,80,0.05)",
         position: "sticky", top: 0, zIndex: 100,
       }}>
-        <Link to="/share" style={{
-          display: "flex", alignItems: "center", gap: "0.4rem",
-          color: "#003f8a", fontSize: "0.86rem", fontWeight: 600,
-          textDecoration: "none", padding: "0.38rem 0.75rem",
-          borderRadius: "8px", border: "1.5px solid #c8d9ff", background: "#f0f5ff",
-        }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          Back
-        </Link>
-
-        <Link to="/" style={{
-          display: "flex", alignItems: "center", gap: "0.55rem",
-          textDecoration: "none", position: "absolute", left: "50%", transform: "translateX(-50%)",
-        }}>
-          <div style={{
-            width: 38, height: 38,
-            background: "linear-gradient(140deg, #003f8a 0%, #0057b8 100%)",
-            borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 3px 10px rgba(0,87,184,0.28)",
-          }}>
-            <span style={{ color: "#fff", fontSize: 10, fontWeight: 800, letterSpacing: 1 }}>RUMI</span>
-          </div>
-          <span style={{ fontSize: "0.98rem", fontWeight: 800, color: "#0b1d40" }}>Rumi Rentals</span>
-        </Link>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-          <Link to="/login" style={{
-            padding: "0.42rem 0.9rem", borderRadius: 8, color: "#003f8a",
-            fontSize: "0.86rem", fontWeight: 600, textDecoration: "none",
-            border: "1.5px solid #c8d9ff",
-          }}>Sign In</Link>
-          <Link to="/signup/tenant" style={{
-            padding: "0.45rem 1rem", borderRadius: 9,
-            background: "linear-gradient(135deg, #003f8a 0%, #0057b8 100%)",
-            color: "#fff", fontSize: "0.86rem", fontWeight: 700,
-            textDecoration: "none", boxShadow: "0 3px 12px rgba(0,87,184,0.28)",
-          }}>Sign Up Free</Link>
+        <h1 style={{ fontSize: "36px", margin: "0 0 12px 0" }}><Home size={32} style={{ display: 'inline', marginRight: '12px' }} />Room Sharing Board</h1>
+        <p style={{ fontSize: "18px", opacity: 0.8, margin: "0 0 24px 0" }}>
+          Find your perfect roommate or post your room sharing ad
+        </p>
+        <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            style={{
+              background: "white", color: "#2563eb", padding: "12px 28px",
+              border: "none", borderRadius: "8px", cursor: "pointer",
+              fontSize: "16px", fontWeight: "600"
+            }}>
+            {showForm ? "✕ Hide Form" : "+ Post an Ad"}
+          </button>
+          <span style={{ opacity: 0.8 }}>{posts.length} ads posted</span>
         </div>
       </header>
 
@@ -150,21 +127,22 @@ const RoomSharePostPage = () => {
                         {post.available_spots > 0 ? "Available" : "Full"}
                       </span>
                     </div>
-                    <p style={{ color: "#2563eb", margin: "0 0 4px", fontSize: "13.5px" }}>📍 {post.location}</p>
-                    <p style={{ fontWeight: 800, margin: "0 0 10px", fontSize: "17px", color: "#0b1d40" }}>
+
+                    <p style={{ color: "#2563eb", margin: "0 0 6px 0", fontSize: "14px" }}><MapPin size={14} style={{ display: 'inline', marginRight: '4px' }} />{post.location}</p>
+                    <p style={{ fontWeight: "700", margin: "0 0 10px 0", fontSize: "18px", color: "#1E293B" }}>
                       LKR {post.rent_per_person?.toLocaleString()}
                       <span style={{ fontWeight: 400, fontSize: "13px", color: "#64748b" }}> / person/month</span>
                     </p>
                     <p style={{ color: "#555", margin: "0 0 14px", lineHeight: 1.6, fontSize: "13.5px" }}>{post.description}</p>
                     <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                      <span style={{ background: "#eff6ff", color: "#2563eb", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 }}>
-                        👤 {post.gender_preference}
+                      <span style={{ background: "#EFF6FF", color: "#2563eb", padding: "4px 12px", borderRadius: "20px", fontSize: "13px" }}>
+                        <Users size={14} style={{ display: 'inline', marginRight: '4px' }} />{post.gender_preference}
                       </span>
-                      <span style={{ background: "#dcfce7", color: "#16a34a", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 }}>
-                        🏠 {post.available_spots}/{post.total_spots} spots
+                      <span style={{ background: "#F0FDF4", color: "#16A34A", padding: "4px 12px", borderRadius: "20px", fontSize: "13px" }}>
+                        <Home size={14} style={{ display: 'inline', marginRight: '4px' }} />{post.available_spots}/{post.total_spots} spots
                       </span>
-                      <span style={{ background: "#fff7ed", color: "#ea580c", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 }}>
-                        📅 {post.move_in_date}
+                      <span style={{ background: "#FFF7ED", color: "#EA580C", padding: "4px 12px", borderRadius: "20px", fontSize: "13px" }}>
+                        <Calendar size={14} style={{ display: 'inline', marginRight: '4px' }} />{post.move_in_date}
                       </span>
                       {post.preferences && (
                         <span style={{ background: "#f8fafc", color: "#64748b", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 }}>
@@ -204,15 +182,15 @@ const RoomSharePostPage = () => {
             ))}
           </div>
         ) : (
-          <div style={{ textAlign: "center", padding: "80px 20px" }}>
-            <div style={{ fontSize: "64px", marginBottom: "16px" }}>🏠</div>
-            <h2 style={{ color: "#0b1d40", marginBottom: "8px" }}>No posts yet</h2>
-            <p style={{ color: "#64748b" }}>Be the first to post a room sharing ad!</p>
+          <div style={{ textAlign: "center", padding: "80px" }}>
+            <div style={{ fontSize: "64px", marginBottom: "16px" }}><Home size={64} /></div>
+            <h2 style={{ color: "#1E293B", marginBottom: "8px" }}>No posts yet</h2>
+            <p style={{ color: "#64748B", marginBottom: "24px" }}>Be the first to post a room sharing ad!</p>
           </div>
         )}
       </div>
     </div>
   );
-};
+}
 
 export default RoomSharePostPage;

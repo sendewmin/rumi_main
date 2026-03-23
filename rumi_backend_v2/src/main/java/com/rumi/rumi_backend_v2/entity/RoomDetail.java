@@ -9,6 +9,8 @@ import com.rumi.rumi_backend_v2.enums.RoomStatus;
 import com.rumi.rumi_backend_v2.enums.RoomType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -34,7 +36,8 @@ public class RoomDetail {
     @Setter
     @Getter
     @Enumerated(EnumType.STRING)
-    @Column(name = "gender_allowed",columnDefinition = "gender_allowed",nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "gender_allowed", nullable = false)
     private GenderAllowed genderAllowed;
 
     @Setter
@@ -58,6 +61,7 @@ public class RoomDetail {
         joinColumns=@JoinColumn(name="room_id"),  // here it will take the primary key from the RoomDetail entity
         inverseJoinColumns=@JoinColumn(name="amenity_id")  //here it will take the primary key from the Amenity entity
         )
+    @Builder.Default
     private Set<Amenity> amenities = new HashSet<>();  // here the amenities will be stored as set
 
     @ManyToMany
@@ -66,6 +70,7 @@ public class RoomDetail {
             joinColumns=@JoinColumn(name="room_id"),  // here it will take the primary key from the RoomDetail entity
             inverseJoinColumns=@JoinColumn(name="rule_id")  // here it will take the primary key from the Rule entity
     )
+    @Builder.Default
     private Set<Rule> rules = new HashSet<>();
 
     @ManyToMany
@@ -74,19 +79,47 @@ public class RoomDetail {
             joinColumns=@JoinColumn(name="room_id"),  // here it will take the primary key from the RoomDetail entity
             inverseJoinColumns=@JoinColumn(name="condition_id")  // here it will take the primary key from the PaymentCondition entity
     )
+    @Builder.Default
     private Set<PaymentCondition> paymentConditions = new HashSet<>();
+
+    @OneToOne(mappedBy = "room", fetch = FetchType.LAZY)
+    @Getter
+    @Setter
+    private Address address;
+
+    @OneToOne(mappedBy = "room", fetch = FetchType.LAZY)
+    @Getter
+    @Setter
+    private RoomPrice roomPrice;
 
     @Setter
     @Getter
     @Enumerated(EnumType.STRING)
-    @Column(name = "room_status",columnDefinition = "room_status",nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "room_status", nullable = false)
     private RoomStatus roomStatus;
 
     @Setter
     @Getter
     @Enumerated(EnumType.STRING)
-    @Column(name="room_type", columnDefinition = "room_type", nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name="room_type", nullable = false)
     private RoomType roomType;
 
+    public void setRenter(User renter) {
+        this.renter = renter;
+    }
+
+    public void setAmenities(Set<Amenity> amenities) {
+        this.amenities = amenities;
+    }
+
+    public void setRules(Set<Rule> rules) {
+        this.rules = rules;
+    }
+
+    public void setPaymentConditions(Set<PaymentCondition> paymentConditions) {
+        this.paymentConditions = paymentConditions;
+    }
 
 }
