@@ -35,7 +35,7 @@ export default function BrowseRooms() {
 
   useEffect(() => {
     fetchRooms();
-  }, [city, budgetIdx, onlyAvail]);
+  }, [city, budgetIdx, onlyAvail, type]);
 
   const fetchRooms = async () => {
     setLoading(true);
@@ -47,6 +47,7 @@ export default function BrowseRooms() {
         minPrice: min === 0 ? null : min,
         maxPrice: max === Infinity ? null : max,
         roomStatus: onlyAvail ? 'AVAILABLE' : null,
+        roomType: type === 'All Types' ? null : type.toUpperCase(),
       };
       const response = await roomFilterApi.searchRooms(filters, 0, 50);
       const mappedRooms = response.data.content.map(room => ({
@@ -54,7 +55,7 @@ export default function BrowseRooms() {
         title: room.roomTitle,
         location: `${room.city}, ${room.country}`,
         price: room.amount,
-        type: 'Apartment',
+        type: room.roomType,
         images: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688'],
         available: room.roomStatus === 'AVAILABLE',
         rating: 4.5,
