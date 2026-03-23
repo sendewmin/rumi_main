@@ -258,34 +258,67 @@ export default function Homepage() {
     };
   }, [mobileOpen]);
 
-  // Fetch featured rooms from backend API
+  // Fetch featured rooms (recently created) from Supabase
   useEffect(() => {
     const fetchFeaturedRooms = async () => {
       try {
         setLoadingFeatured(true);
-        const response = await roomFilterApi.searchRooms({}, 0, 3);
-        const data = response.data;
+        
+        // Fetch recently created rooms from Supabase
+        const { data: roomsData, error: fetchError } = await supabase
+          .from('rooms')
+          .select('*')
+          .eq('roomstatus', 'AVAILABLE')
+          .order('created_at', { ascending: false })
+          .limit(3);
+        
+        if (fetchError) throw fetchError;
 
-        const formatted = data.content.map(room => ({
-          id: room.roomId,
-          title: room.roomTitle || 'Room',
-          location: `${room.city}, ${room.country}`,
-          city: room.city,
-          price: room.amount,
-          type: room.roomType || 'Apartment',
-          bedrooms: room.maxRoommates || 1,
-          bathrooms: 1,
-          sqft: 500,
-          rating: 4.7,
-          reviews: 0,
-          available: room.roomStatus === 'AVAILABLE',
-          landlord: { name: 'RUMI', joined: '2024' },
-          amenities: ['WiFi', 'Modern Amenities'],
-          rules: [],
-          description: room.roomDescription || 'Beautiful room available now',
-          images: room.imageUrl 
-            ? [room.imageUrl] 
-            : ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=800']
+        // Fetch images for each featured room
+        const formatted = await Promise.all((roomsData || []).map(async (room) => {
+          let images = ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=800'];
+          
+          try {
+            const { data: storageFiles } = await supabase.storage
+              .from('RoomImages')
+              .list(String(room.roomid), { limit: 10 });
+
+            if (storageFiles && storageFiles.length > 0) {
+              const fileUrls = storageFiles
+                .filter(f => f.name.length > 0)
+                .map(file => {
+                  const { data: urlData } = supabase.storage
+                    .from('RoomImages')
+                    .getPublicUrl(`${room.roomid}/${file.name}`);
+                  return urlData?.publicUrl;
+                })
+                .filter(url => url);
+              
+              if (fileUrls.length > 0) images = fileUrls;
+            }
+          } catch (imgErr) {
+            console.warn(`Could not fetch images for room ${room.roomid}:`, imgErr);
+          }
+
+          return {
+            id: room.roomid,
+            title: room.roomtitle || 'Room',
+            location: `${room.city}, ${room.country}`,
+            city: room.city,
+            price: room.amount,
+            type: room.roomtype || 'Apartment',
+            bedrooms: room.bedrooms || room.maxroommates || 1,
+            bathrooms: room.bathrooms || 1,
+            sqft: 500,
+            rating: room.avgrating || 0,
+            reviews: room.totalreviews || 0,
+            available: room.roomstatus === 'AVAILABLE',
+            landlord: { name: 'RUMI', joined: '2024' },
+            amenities: ['WiFi', 'Modern Amenities'],
+            rules: [],
+            description: room.roomdescription || 'Beautiful room available now',
+            images: images
+          };
         }));
 
         setFeaturedRooms(formatted);

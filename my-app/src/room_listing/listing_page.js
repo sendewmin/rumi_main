@@ -1,5 +1,7 @@
 // sx prop is used to override the default styling from the Material UI components.
 
+import { useState, useEffect } from "react";
+import { useParams } from 'react-router-dom';
 
 // Import of Box Material UI
 import Box from "@mui/material/Box";
@@ -8,8 +10,9 @@ import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 
-//Import the Room slider js 
+// Import the Room slider js 
 import RoomSlider from '../components/room_slider';
+import supabase from '../api/supabaseClient';
 
 // Import the data from roomdata.json
 import roomobject from '../components/roomdata.json';
@@ -33,13 +36,147 @@ import Avatar from "@mui/material/Avatar";
 import RatingStars from "../components/rating_system/component/ratingStars";
 import RateRoom from "../components/rating_system/component/rateRoom";
 import RatingDisplay from "../components/rating_system/component/ratingDisplay";
-import { useState } from "react";
+import CircularProgress from "@mui/material/CircularProgress";
+import axiosClient from '../api/rumi_client';
+import { createBooking, checkExistingBooking } from '../components/rating_system/services/bookingService';
 
 
 function ListingPage(){
-    // TODO: Replace hardcoded roomId and userId with actual values from route params and auth context
-    const roomId = 1;  // Should come from useParams() or context
-    const userId = 1;  // Should come from auth context
+    const { id } = useParams();
+    const mockUserId = 1;  // Should come from auth context
+    
+    // Room and booking states
+    const [room, setRoom] = useState(null);
+    const [images, setImages] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [booked, setBooked] = useState(false);
+    const [isBooking, setIsBooking] = useState(false);
+    const [bookingMsg, setBookingMsg] = useState('');
+
+    // Fetch images directly from Supabase storage
+    const fetchImagesFromSupabase = async (roomId) => {
+        try {
+            const { data, error: listError } = await supabase.storage
+                .from('RoomImages')
+                .list(String(roomId), {
+                    limit: 100,
+                    offset: 0,
+                    sortBy: { column: 'name', order: 'asc' }
+                });
+
+            if (listError) {
+                console.warn('Supabase list error:', listError);
+                return [];
+            }
+
+            if (!data || data.length === 0) {
+                console.warn('No images found in Supabase');
+                return [];
+            }
+
+            // Generate public URLs for all files
+            const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+            const roomImages = data
+                .filter(file => !file.name.startsWith('.'))  // Skip metadata files
+                .map(file => `${supabaseUrl}/storage/v1/object/public/RoomImages/${roomId}/${file.name}`);
+
+            console.log('Fetched images from Supabase:', roomImages);
+            return roomImages;
+        } catch (err) {
+            console.error('Error fetching from Supabase storage:', err);
+            return [];
+        }
+    };
+
+    // Fetch room data from Supabase
+    useEffect(() => {
+        const fetchRoomData = async () => {
+            try {
+                setLoading(true);
+                const roomIdInt = parseInt(id, 10);
+                
+                // Fetch from Supabase rooms table - use get() instead of .single()
+                const { data: roomsData, error: roomError } = await supabase
+                    .from('rooms')
+                    .select('*')
+                    .eq('roomid', roomIdInt);
+                
+                if (roomError) {
+                    console.warn('Supabase room fetch error:', roomError);
+                    setError('Room not found');
+                } else if (roomsData && roomsData.length > 0) {
+                    const fetchedRoom = roomsData[0];
+                    setRoom(fetchedRoom);
+                    console.log('Room loaded from Supabase:', fetchedRoom);
+                } else {
+                    setError('Room not found');
+                }
+                
+                // Fetch images from Supabase storage
+                const supabaseImages = await fetchImagesFromSupabase(id);
+                if (supabaseImages.length > 0) {
+                    setImages(supabaseImages);
+                } else {
+                    setImages(['https://via.placeholder.com/800x600?text=Room+Image']);
+                }
+                
+                // Check if already booked
+                const alreadyBooked = await checkExistingBooking(mockUserId, roomIdInt);
+                setBooked(alreadyBooked);
+                
+                setError(null);
+            } catch (err) {
+                console.error('Error fetching room:', err);
+                setError(err.message);
+                setImages(['https://via.placeholder.com/800x600?text=Room+Image']);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (id) {
+            fetchRoomData();
+        }
+    }, [id]);
+
+    // Handle booking
+    const handleBook = async () => {
+        setIsBooking(true);
+        try {
+            const result = await createBooking(mockUserId, room?.roomId || room?.id);
+            if (result) {
+                setBooked(true);
+                setBookingMsg('✓ Room booked successfully!');
+                setTimeout(() => setBookingMsg(''), 3000);
+            } else {
+                setBookingMsg('Failed to book room.');
+                setTimeout(() => setBookingMsg(''), 3000);
+            }
+        } catch (error) {
+            setBookingMsg('Error booking room.');
+            setTimeout(() => setBookingMsg(''), 3000);
+        } finally {
+            setIsBooking(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (!room) {
+        return (
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+                <Typography variant="h6">Room not found</Typography>
+                {error && <Typography color="error">{error}</Typography>}
+            </Box>
+        );
+    }
     
     return(
 
@@ -116,38 +253,40 @@ function ListingPage(){
                                         fontSize={18}
                                         color='#1E293B' 
                                     >
-                                        Private Room in Modern Shared Apartment
+                                        {room?.roomTitle || 'Room Details'}
                                     </Typography>
                                 </Grid>
 
                                 {/* Review and Location of the Room */}
                                 <Grid container direction='row' spacing={3} alignItems={'center'}>
-
                                     <Grid item>
-                                        <Typography variant='caption' sx={{display:'flex',gap:0.2}}> <User size={15}/> 23 Reviews </Typography>
+                                        <Typography variant='caption' sx={{display:'flex',gap:0.2}}> <User size={15}/> {room?.reviewCount || 0} Reviews </Typography>
                                     </Grid>
-
                                     <Grid item>
-                                        <Typography variant='caption' sx={{display:'flex',gap:0.2}}><MapPin size={15}/>Colombo, City Center</Typography>
+                                        <Typography variant='caption' sx={{display:'flex',gap:0.2}}>
+                                            <MapPin size={15}/>
+                                            {room?.address?.city || 'City'}, {room?.address?.country || 'Country'}
+                                        </Typography>
                                     </Grid>
-
                                 </Grid>
 
                             </Grid>
                         </CardContent>
                     </Card>
 
-                    {/* Rating System - Submission Form */}
-                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                        <Box sx={{ width: '100%' }}>
-                            <RateRoom roomId={roomId} userId={userId} />
+                    {/* Rating System - Submission Form (only if booked) */}
+                    {booked && (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                            <Box sx={{ width: '100%' }}>
+                                <RateRoom roomId={room?.roomId || id} userId={mockUserId} />
+                            </Box>
                         </Box>
-                    </Box>
+                    )}
 
                     {/* Rating Statistics Display */}
                     <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                         <Box sx={{ width: '100%' }}>
-                            <RatingDisplay roomId={roomId} />
+                            <RatingDisplay roomId={room?.roomId || id} />
                         </Box>
                     </Box>
                 
@@ -184,14 +323,21 @@ function ListingPage(){
 
                                 <Grid container direction={'column'} spacing={1} justifyContent={'center'}>
                                     <Grid item>
-                                        <Typography variant="p" fontSize={20} sx={{fontWeight:600}}>$850/month</Typography>
+                                        <Typography variant="p" fontSize={20} sx={{fontWeight:600}}>
+                                            {room?.price?.amount ? `LKR ${room.price.amount.toLocaleString('en-LK')}` : 'Price on request'}
+                                        </Typography>
+                                        <Typography variant="caption" sx={{color: '#666'}}>
+                                            / {room?.price?.billingCycle?.toLowerCase() || 'month'}
+                                        </Typography>
                                     </Grid>
                                     <Grid container direction={'column'} spacing={0.2}>
                                         <Grid item>
                                             <Typography variant='p' fontSize={14} sx={{display:'flex', alignItems:'end',gap:0.2}}> <Check size={16}/> All utilities included</Typography>
                                         </Grid>
                                         <Grid item>
-                                            <Typography variant='p' fontSize={14} sx={{display:'flex', alignItems:'end',gap:0.2}}><CircleDollarSign size={16} color='green'/> Security deposit: $850</Typography>
+                                            <Typography variant='p' fontSize={14} sx={{display:'flex', alignItems:'end',gap:0.2}}>
+                                                <CircleDollarSign size={16} color='green'/> Security deposit: {room?.securityDeposit || 'TBA'}
+                                            </Typography>
                                         </Grid>
                                     </Grid>
                                     <Grid item>
@@ -204,21 +350,60 @@ function ListingPage(){
                                         <Grid item>
                                             <Typography variant="p" fontSize={12}>Available from</Typography>
                                         </Grid>
-
                                         <Grid item>
-                                            <Typography component='p' fontSize={18} sx={{display:'flex', alignItems:'center',gap:0.5}}> <CalendarDays size={15}/> Jan 15, 2025 </Typography>
+                                            <Typography component='p' fontSize={18} sx={{display:'flex', alignItems:'center',gap:0.5}}> 
+                                                <CalendarDays size={15}/> {room?.availableFrom || 'TBA'}
+                                            </Typography>
                                         </Grid>
                                     </Grid>
 
-                                    <Grid container alignItems={{xs:'start',md:'end'}} direction={{xs:'column',sm:'row',md:'column', lg:'row'}}>
+                                    <Grid container alignItems={{xs:'start',md:'end'}} direction={{xs:'column',sm:'row',md:'column', lg:'row'}} spacing={0.5}>
                                         <Grid item>
-                                            <Button type="submit" variant="contained" color="black" size="large" sx={{boxShadow:'0px 1px 2px rgba(0,0,0,0.15)', border:'1px solid gray', fontSize:'13px'}}>Schedule Visit</Button>
+                                            <Button 
+                                                type="submit" 
+                                                variant="contained" 
+                                                color="black" 
+                                                size="large" 
+                                                disabled={booked || isBooking}
+                                                sx={{
+                                                    boxShadow:'0px 1px 2px rgba(0,0,0,0.15)', 
+                                                    border:'1px solid gray', 
+                                                    fontSize:'13px'
+                                                }}
+                                                onClick={handleBook}
+                                            >
+                                                {isBooking ? 'Booking...' : booked ? '✓ Booked!' : 'Schedule Visit'}
+                                            </Button>
                                         </Grid>
 
                                         <Grid item>
-                                            <Button type="submit" variant="contained" size="large" sx={{bgcolor:'#1E293B', boxShadow:'0px 1px 2px rgba(0,0,0,0.15)',border:'1px solid gray',fontSize:"13px",color:'#ffffff', fontWeight:600}}>Apply Now</Button>
+                                            <Button 
+                                                type="submit" 
+                                                variant="contained" 
+                                                size="large"
+                                                disabled={isBooking || booked}
+                                                sx={{
+                                                    bgcolor:booked ? '#22c55e' : '#1E293B', 
+                                                    boxShadow:'0px 1px 2px rgba(0,0,0,0.15)',
+                                                    border:'1px solid gray',
+                                                    fontSize:"13px",
+                                                    color:'#ffffff', 
+                                                    fontWeight:600
+                                                }}
+                                                onClick={handleBook}
+                                            >
+                                                {isBooking ? 'Booking...' : booked ? '✓ Booked!' : 'Book Now'}
+                                            </Button>
                                         </Grid>
                                     </Grid>
+                                    
+                                    {bookingMsg && (
+                                        <Grid item>
+                                            <Typography sx={{fontSize: '12px', color: booked ? '#22c55e' : '#ef4444'}}>
+                                                {bookingMsg}
+                                            </Typography>
+                                        </Grid>
+                                    )}
                                 </Grid>
 
                             </Grid>
@@ -242,30 +427,28 @@ function ListingPage(){
                                 {/* Room Details Container */}
                                 <Grid container justifyContent={'space-between'}>
                                     <Grid item>
-                                        <Typography fontSize={14}><BookText size={13}/> Private Bedroom</Typography>
+                                        <Typography fontSize={14}><BookText size={13}/> {room?.roomType || 'Private Bedroom'}</Typography>
                                     </Grid>
-
                                     <Grid item>
-                                        <Typography fontSize={14}><BookText size={13}/> Shared Bathroom</Typography>
+                                        <Typography fontSize={14}><BookText size={13}/> {room?.bathroomType || 'Shared Bathroom'}</Typography>
                                     </Grid>
-
                                     <Grid item>
-                                        <Typography fontSize={14}  sx={{display:{xs:'none' , sm:'block',md:'none', lg:'block'}}}><BookText size={13}/> 3 Bed, 2 Bath</Typography>
+                                        <Typography fontSize={14} sx={{display:{xs:'none' , sm:'block',md:'none', lg:'block'}}}>
+                                            <BookText size={13}/> {room?.maxRoommates || '3'} Max Roommate{room?.maxRoommates !== 1 ? 's' : ''}
+                                        </Typography>
                                     </Grid>
                                 </Grid>
 
                                 {/* Guest Rules container  */}
                                 <Grid container justifyContent={'space-between'}>
                                     <Grid item>
-                                        <Typography fontSize={14} sx={{display:'flex', alignItems:'center', gap:0.5}}> <Info size={13}/> Quiet hours: 10PM - 8PM</Typography>
+                                        <Typography fontSize={14} sx={{display:'flex', alignItems:'center', gap:0.5}}> <Info size={13}/> Quiet hours available</Typography>
                                     </Grid>
-
                                     <Grid item>
-                                        <Typography fontSize={14} sx={{display:'flex', alignItems:'center', gap:0.5}}><Info size={13}/> Guests allowed with notice</Typography>
+                                        <Typography fontSize={14} sx={{display:'flex', alignItems:'center', gap:0.5}}><Info size={13}/> Guests allowed</Typography>
                                     </Grid>
-
                                     <Grid item>
-                                        <Typography fontSize={14} sx={{display:'flex', alignItems:'center', gap:0.5}}><Info size={13}/> No smoking</Typography>
+                                        <Typography fontSize={14} sx={{display:'flex', alignItems:'center', gap:0.5}}><Info size={13}/> {room?.roomStatus === 'AVAILABLE' ? 'Available Now' : 'Check availability'}</Typography>
                                     </Grid>
                                 </Grid>
 
@@ -292,11 +475,12 @@ function ListingPage(){
                                 <Grid container direction={'column'} spacing={1}>
                                     <Grid container alignItems={'center'}>
                                         <Grid item>
-                                            <Avatar sx={{bgcolor:'#0057b8'}}>YG</Avatar>
+                                            <Avatar sx={{bgcolor:'#0057b8'}}>
+                                                {room?.rentername?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'LL'}
+                                            </Avatar>
                                         </Grid>
-                                        
                                         <Grid item>
-                                            <Typography>Yohan</Typography>
+                                            <Typography>{room?.rentername || 'Landlord'}</Typography>
                                         </Grid> 
                                     </Grid>
 
@@ -329,19 +513,26 @@ function ListingPage(){
 
                                 {/* All Amenities will be displayed */}
                                 <Grid container justifyContent={'space-between'}>
-
-                                    <Grid item>
-                                        <Typography fontSize={14} sx={{ display:'flex', alignItems:'center',gap:0.5}}> <CircleStar size={13}/> High-Speed WiFi</Typography>
-                                    </Grid>
-
-                                    <Grid item>
-                                        <Typography fontSize={14} sx={{ display:'flex', alignItems:'center',gap:0.5}}> <CircleStar size={13}/> Free Parking</Typography>
-                                    </Grid>
-
-                                    <Grid item>
-                                        <Typography fontSize={14} sx={{ display:'flex', alignItems:'center',gap:0.5}}> <CircleStar size={13}/> Air Conditioning</Typography>
-                                    </Grid>
-
+                                    {room?.amenities && room.amenities.slice(0, 3).map((amenity, idx) => (
+                                        <Grid item key={idx}>
+                                            <Typography fontSize={14} sx={{ display:'flex', alignItems:'center',gap:0.5}}> 
+                                                <CircleStar size={13}/> {amenity.name}
+                                            </Typography>
+                                        </Grid>
+                                    ))}
+                                    {(!room?.amenities || room.amenities.length === 0) && (
+                                        <>
+                                            <Grid item>
+                                                <Typography fontSize={14} sx={{ display:'flex', alignItems:'center',gap:0.5}}> <CircleStar size={13}/> High-Speed WiFi</Typography>
+                                            </Grid>
+                                            <Grid item>
+                                                <Typography fontSize={14} sx={{ display:'flex', alignItems:'center',gap:0.5}}> <CircleStar size={13}/> Free Parking</Typography>
+                                            </Grid>
+                                            <Grid item>
+                                                <Typography fontSize={14} sx={{ display:'flex', alignItems:'center',gap:0.5}}> <CircleStar size={13}/> Air Conditioning</Typography>
+                                            </Grid>
+                                        </>
+                                    )}
                                 </Grid>
                                 {/* Link to view the Amenities */}
                                 <Grid item>

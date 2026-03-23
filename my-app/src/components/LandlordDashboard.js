@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './LandlordDashboard.css';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { supabase } from '../auth/supabaseClient';
+import supabase from '../api/supabaseClient';
 import axiosClient from '../api/rumi_client';
 
 /* ── Helpers ── */
@@ -13,41 +13,88 @@ const getAuthHeaders = async () => {
 };
 
 const formatPrice = (listing) => {
-  if (!listing.price?.amount) return 'Price N/A';
-  return `LKR ${listing.price.amount.toLocaleString('en-LK')} / ${listing.price.billingCycle?.toLowerCase() || 'mo'}`;
+  if (!listing.amount) return 'Price N/A';
+  return `LKR ${parseInt(listing.amount).toLocaleString('en-LK')} / month`;
 };
 
 const getFirstImage = (listing) =>
-  listing.imageUrls && listing.imageUrls.length > 0 ? listing.imageUrls[0] : null;
+  'https://via.placeholder.com/600x400?text=' + encodeURIComponent(listing.roomtitle || 'Room');
 
 /* ── Listing Card ── */
 const ListingCard = ({ listing, onDelete, onView, deleting }) => {
   const [imgIdx, setImgIdx] = useState(0);
-  const images = listing.imageUrls && listing.imageUrls.length > 0 ? listing.imageUrls : [];
-  const imgSrc = images.length > 0 ? images[imgIdx] : null;
-  const location = listing.address
-    ? `${listing.address.city || ''}${listing.address.country ? ', ' + listing.address.country : ''}`
-    : 'Location N/A';
+  const [images, setImages] = useState([]);
+  const [loadingImages, setLoadingImages] = useState(true);
 
-  const prevImg = (e) => { e.stopPropagation(); setImgIdx(i => (i - 1 + images.length) % images.length); };
-  const nextImg = (e) => { e.stopPropagation(); setImgIdx(i => (i + 1) % images.length); };
+  // Fetch images from Supabase storage when component mounts
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const roomId = listing.roomid;
+        console.log(`📷 ListingCard: Fetching images for room ${roomId}...`);
+        
+        const { data: storageFiles, error: storageError } = await supabase.storage
+          .from('RoomImages')
+          .list(String(roomId), { limit: 100, offset: 0 });
+
+        console.log(`📷 Storage response for room ${roomId}:`, { 
+          error: storageError?.message, 
+          fileCount: storageFiles?.length,
+          files: storageFiles?.map(f => f.name)
+        });
+
+        if (!storageError && storageFiles && storageFiles.length > 0) {
+          const fileUrls = storageFiles
+            .filter(file => file.name.length > 0)
+            .map(file => {
+              const { data: urlData } = supabase.storage
+                .from('RoomImages')
+                .getPublicUrl(`${roomId}/${file.name}`);
+              console.log(`  📷 Generated URL for ${file.name}:`, urlData?.publicUrl);
+              return urlData?.publicUrl;
+            })
+            .filter(url => url);
+
+          console.log(`✅ Found ${fileUrls.length} images for room ${roomId}`);
+          setImages(fileUrls);
+        } else {
+          console.log(`⚠️ No images found for room ${roomId}, using placeholder`);
+          setImages([getFirstImage(listing)]);
+        }
+      } catch (err) {
+        console.error('❌ Could not fetch listing images:', err);
+        setImages([getFirstImage(listing)]);
+      } finally {
+        setLoadingImages(false);
+      }
+    };
+
+    fetchImages();
+  }, [listing.roomid]);
+
+  const displayImages = images.length > 0 ? images : [getFirstImage(listing)];
+  const imgSrc = displayImages[imgIdx];
+  const location = listing.city || listing.country ? `${listing.city || ''}${listing.country ? ', ' + listing.country : ''}` : 'Location N/A';
+
+  const prevImg = (e) => { e.stopPropagation(); setImgIdx(i => (i - 1 + displayImages.length) % displayImages.length); };
+  const nextImg = (e) => { e.stopPropagation(); setImgIdx(i => (i + 1) % displayImages.length); };
 
   return (
     <div className="ld-listing-card">
       <div className="ld-listing-img-wrap">
         {imgSrc ? (
-          <img src={imgSrc} alt={listing.roomTitle} className="ld-listing-img" />
+          <img src={imgSrc} alt={listing.roomtitle} className="ld-listing-img" />
         ) : (
           <div className="ld-listing-img ld-listing-img-placeholder">
             <span>No Image</span>
           </div>
         )}
-        {images.length > 1 && (
+        {displayImages.length > 1 && (
           <>
             <button className="ld-img-arrow prev" onClick={prevImg} aria-label="Previous image">&#8249;</button>
             <button className="ld-img-arrow next" onClick={nextImg} aria-label="Next image">&#8250;</button>
             <div className="ld-img-dots">
-              {images.map((_, i) => (
+              {displayImages.map((_, i) => (
                 <div key={i} className={`ld-img-dot${i === imgIdx ? ' active' : ''}`} />
               ))}
             </div>
@@ -57,17 +104,17 @@ const ListingCard = ({ listing, onDelete, onView, deleting }) => {
       <div className="ld-listing-body">
         <div className="ld-listing-top">
           <div>
-            <p className="ld-listing-title">{listing.roomTitle}</p>
+            <p className="ld-listing-title">{listing.roomtitle}</p>
             <p className="ld-listing-location">{location}</p>
           </div>
-          <span className={`ld-badge ${listing.roomStatus === 'AVAILABLE' ? 'ld-badge-active' : 'ld-badge-review'}`}>
-            {listing.roomStatus === 'AVAILABLE' ? 'Active' : listing.roomStatus || 'Pending'}
+          <span className={`ld-badge ${listing.roomstatus === 'AVAILABLE' ? 'ld-badge-active' : 'ld-badge-review'}`}>
+            {listing.roomstatus === 'AVAILABLE' ? 'Active' : listing.roomstatus || 'Pending'}
           </span>
         </div>
         <div className="ld-listing-footer">
           <span className="ld-listing-price">{formatPrice(listing)}</span>
           <div className="ld-listing-meta">
-            <span className="ld-listing-type">{listing.roomType || 'Room'}</span>
+            <span className="ld-listing-type">{listing.roomtype || 'Room'}</span>
             {listing.maxRoommates > 0 && (
               <>
                 <span className="ld-dot">·</span>
@@ -76,10 +123,10 @@ const ListingCard = ({ listing, onDelete, onView, deleting }) => {
             )}
           </div>
           <div className="ld-listing-actions">
-            <button className="ld-view-btn" onClick={() => onView(listing.roomId)}>View</button>
+            <button className="ld-view-btn" onClick={() => onView(listing.roomid)}>View</button>
             <button
               className="ld-delete-btn"
-              onClick={() => onDelete(listing.roomId)}
+              onClick={() => onDelete(listing.roomid)}
               disabled={deleting}
             >
               {deleting ? '...' : 'Delete'}
@@ -129,9 +176,18 @@ const LandlordDashboard = () => {
     try {
       setLoadingListings(true);
       setListingsError('');
-      const headers = await getAuthHeaders();
-      const res = await axiosClient.get('/rooms/my-listings', { headers });
-      setListings(res.data || []);
+      // Fetch all rooms from Supabase
+      const { data: rooms, error } = await supabase
+        .from('rooms')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Supabase fetch error:', error);
+        setListingsError('Could not load your listings.');
+        return;
+      }
+      setListings(rooms || []);
     } catch (err) {
       console.error('Error fetching listings:', err);
       setListingsError('Could not load your listings. Please refresh.');
@@ -149,8 +205,17 @@ const LandlordDashboard = () => {
     if (!window.confirm('Are you sure you want to delete this listing? This cannot be undone.')) return;
     try {
       setDeletingId(roomId);
-      const headers = await getAuthHeaders();
-      await axiosClient.delete(`/rooms/${roomId}`, { headers });
+      // Delete from Supabase (use CAMELCASE column name)
+      const { error } = await supabase
+        .from('rooms')
+        .delete()
+        .eq('roomid', roomId);
+      
+      if (error) {
+        console.error('Delete error:', error);
+        alert('Failed to delete listing. Please try again.');
+        return;
+      }
       setListings(prev => prev.filter(l => l.roomId !== roomId));
     } catch (err) {
       console.error('Error deleting listing:', err);
@@ -186,49 +251,91 @@ const LandlordDashboard = () => {
         setMessage('❌ Please log in to create listings');
         return;
       }
-      if (!formData.roomTitle || !formData.roomDescription || !formData.city || !formData.amount || !formData.advance) {
+      if (!formData.roomTitle || !formData.roomDescription || !formData.city || !formData.amount) {
         setMessage('❌ Please fill in all required fields');
         return;
       }
 
-      const headers = await getAuthHeaders();
+      // Generate a new roomId (using timestamp + random number)
+      const newRoomId = Math.floor(Date.now() / 1000) + Math.floor(Math.random() * 10000);
+      console.log('✓ Generated roomId:', newRoomId);
 
-      const roomPayload = {
-        roomTitle: formData.roomTitle,
-        roomDescription: formData.roomDescription,
-        genderAllowed: formData.genderAllowed,
-        maxRoommates: parseInt(formData.maxRoommates) || 1,
-        roomStatus: formData.roomStatus,
-        roomType: formData.roomType,
-        address: {
-          houseNumber: parseInt(formData.houseNumber) || 1,
-          addressLine: formData.addressLine || 'N/A',
-          city: formData.city,
-          country: formData.country,
-        },
-        price: {
-          amount: parseInt(formData.amount),
-          advance: parseInt(formData.advance),
-          billingCycle: formData.billingCycle,
-        },
-        amenityIds: [],
-        ruleIds: [],
-        paymentConditionIds: [],
+      // Insert directly to Supabase (use CAMELCASE column names to match schema)
+      const roomData = {
+        roomid: newRoomId,
+        roomtitle: formData.roomTitle,
+        roomdescription: formData.roomDescription,
+        roomstatus: formData.roomStatus,
+        amount: parseInt(formData.amount),
+        maxroommates: parseInt(formData.maxRoommates) || 1,
+        bedrooms: 1,
+        bathrooms: 1,
+        totalroomarea: 25,
+        roomtype: formData.roomType,
+        addressline: formData.addressLine || 'N/A',
+        city: formData.city,
+        country: formData.country,
+        amenities: [],
+        allergies: [],
+        rentername: user.email || 'Landlord',
+        renterimage: 'https://via.placeholder.com/80',
+        avgrating: 0,
+        totalreviews: 0,
       };
 
-      const roomRes = await axiosClient.post('/rooms', roomPayload, { headers });
-      const roomId = roomRes.data.roomId;
-      setSuccessId(roomId);
+      const { data: insertedRoom, error: insertError } = await supabase
+        .from('rooms')
+        .insert([roomData])
+        .select();
 
+      if (insertError) {
+        console.error('Supabase insert error:', insertError);
+        setMessage(`❌ Error: ${insertError.message}`);
+        return;
+      }
+
+      console.log('✓ Insert successful');
+      
+      const roomId = newRoomId;
+      setSuccessId(roomId);
+      
+      // Upload images to Supabase storage if any
       if (images.length > 0) {
+        console.log(`📸 Uploading ${images.length} images for room ${roomId}...`);
+        let uploadedCount = 0;
+        
         try {
-          const formDataImg = new FormData();
-          images.forEach(img => formDataImg.append('image', img));
-          await axiosClient.post(`/rooms/${roomId}/images`, formDataImg, { headers });
-          setMessage(`✅ Room created! ID: ${roomId} with ${images.length} images`);
+          for (let img of images) {
+            try {
+              const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+              console.log(`  Uploading image: ${fileName}`);
+              
+              const { data, error: uploadError } = await supabase.storage
+                .from('RoomImages')
+                .upload(`${roomId}/${fileName}`, img, {
+                  cacheControl: '3600',
+                  upsert: false
+                });
+
+              if (uploadError) {
+                console.error(`    ❌ Upload failed:`, uploadError);
+              } else {
+                console.log(`    ✓ Uploaded:`, data?.path);
+                uploadedCount++;
+              }
+            } catch (singleImgErr) {
+              console.error(`    ❌ Error uploading single image:`, singleImgErr);
+            }
+          }
+          
+          if (uploadedCount > 0) {
+            setMessage(`✅ Room created! ID: ${roomId} with ${uploadedCount}/${images.length} images`);
+          } else if (uploadedCount === 0 && images.length > 0) {
+            setMessage(`⚠️ Room created (ID: ${roomId}) but images failed to upload`);
+          }
         } catch (imgErr) {
-          const errorDetail = imgErr.response?.data?.error || imgErr.message;
-          setMessage(`✅ Room created! ID: ${roomId} — image upload failed: ${errorDetail}`);
+          console.error('Image upload error:', imgErr);
+          setMessage(`✅ Room created! ID: ${roomId} (images: ${imgErr.message})`);
         }
       } else {
         setMessage(`✅ Room created! ID: ${roomId}`);
@@ -243,12 +350,12 @@ const LandlordDashboard = () => {
       });
       setImages([]);
 
-      // Refresh listings to show newly created one
+      // Refresh listings
       await fetchMyListings();
 
     } catch (err) {
-      const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message;
-      setMessage(`❌ Error: ${typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg)}`);
+      console.error('Error creating room:', err);
+      setMessage(`❌ Error: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -435,11 +542,11 @@ const LandlordDashboard = () => {
                 <div className="ld-listings-list">
                   {listings.map(l => (
                     <ListingCard
-                      key={l.roomId}
+                      key={l.roomid}
                       listing={l}
                       onDelete={handleDelete}
                       onView={(id) => navigate(`/listing/${id}`)}
-                      deleting={deletingId === l.roomId}
+                      deleting={deletingId === l.roomid}
                     />
                   ))}
                 </div>

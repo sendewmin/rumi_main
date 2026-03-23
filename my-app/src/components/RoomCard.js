@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BedDouble, ShowerHead } from 'lucide-react';
+import { useAuth } from '../auth/AuthContext';
+import { addToWishlist, removeFromWishlist, isInWishlist } from '../api/wishlistService';
 import './RoomCard.css';
 
 const formatPrice = (price) =>
@@ -40,13 +42,49 @@ const HeartIcon = ({ filled }) => (
 
 const RoomCard = ({ room }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [wishlisted, setWishlisted] = useState(false);
+  const [checkingWishlist, setCheckingWishlist] = useState(true);
 
   const handleClick = () => navigate(`/listing/${room.id}`);
 
-  const handleWishlist = (e) => {
+  // Check if room is in wishlist on mount
+  useEffect(() => {
+    const checkWishlist = async () => {
+      if (!user || !room.id) {
+        setCheckingWishlist(false);
+        return
+      }
+
+      const inWishlist = await isInWishlist(user.id, room.id)
+      setWishlisted(inWishlist)
+      setCheckingWishlist(false)
+    }
+
+    checkWishlist()
+  }, [user, room.id])
+
+  const handleWishlist = async (e) => {
     e.stopPropagation();
-    setWishlisted(prev => !prev);
+    
+    if (!user) {
+      alert('Please log in to save rooms');
+      return
+    }
+
+    if (wishlisted) {
+      // Remove from wishlist
+      const result = await removeFromWishlist(user.id, room.id)
+      if (!result.error) {
+        setWishlisted(false)
+      }
+    } else {
+      // Add to wishlist
+      const result = await addToWishlist(user.id, room.id)
+      if (!result.error) {
+        setWishlisted(true)
+      }
+    }
   };
 
   return (

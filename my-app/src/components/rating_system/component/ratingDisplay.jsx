@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { getRoomRatingStats } from "../services/ratingService"
+import { getRoomRatingStats, getRoomReviews } from "../services/ratingService"
 import "./ratingDisplay.css"
 
 /**
@@ -8,17 +8,23 @@ import "./ratingDisplay.css"
  */
 function RatingDisplay({ roomId }) {
   const [stats, setStats] = useState(null)
+  const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       if (!roomId) return
-      const data = await getRoomRatingStats(roomId)
-      setStats(data)
+      
+      const statsData = await getRoomRatingStats(roomId)
+      setStats(statsData)
+      
+      const reviewsData = await getRoomReviews(roomId)
+      setReviews(reviewsData)
+      
       setLoading(false)
     }
 
-    fetchStats()
+    fetchData()
   }, [roomId])
 
   if (loading) {
@@ -90,6 +96,44 @@ function RatingDisplay({ roomId }) {
           })}
         </div>
       </div>
+
+      {/* User Reviews Section */}
+      {reviews.length > 0 && (
+        <div className="reviews-section">
+          <h3 className="reviews-title">Guest Reviews</h3>
+          <div className="reviews-list">
+            {reviews.map((review) => (
+              <div key={review.id} className="review-card">
+                <div className="review-header">
+                  <div className="review-stars">
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <span
+                        key={i}
+                        className={`star-mini ${i < review.stars ? "filled" : ""}`}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
+                  <span className="review-date">
+                    {new Date(review.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                {review.comment && (
+                  <p className="review-comment">{review.comment}</p>
+                )}
+                {review.tags && (
+                  <div className="review-tags">
+                    {JSON.parse(review.tags || "[]").map((tag) => (
+                      <span key={tag} className="review-tag">{tag}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { supabase } from "../supabaseClient"
+import supabase from "../../../api/supabaseClient"
 
 export async function checkBooking(userId, roomId) {
 

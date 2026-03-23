@@ -1,10 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 import RoomCard from './RoomCard';
 import axiosClient from '../api/rumi_client';
+import supabase from '../api/supabaseClient';
 import { createBooking, checkExistingBooking } from './rating_system/services/bookingService';
+import { useAuth } from '../auth/AuthContext';
 import './ListingPage.css';
+
+// Lazy load heavy components
+const RateRoom = lazy(() => import('./rating_system/component/rateRoom'));
+const RatingDisplay = lazy(() => import('./rating_system/component/ratingDisplay'));
 
 /* ── Amenity icon map ── */
 const amenityIcons = {
@@ -98,6 +104,7 @@ const StarRating = ({ rating, size = 'md' }) => {
 const ListingPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user, profile, loading: authLoading } = useAuth();
 
   // States for room data and images
   const [room, setRoom] = useState(null);
@@ -112,65 +119,133 @@ const ListingPage = () => {
   const [isBooking, setIsBooking]     = useState(false);
   const [bookingMsg, setBookingMsg]   = useState('');
   const [booked, setBooked]           = useState(false);
+  const [userReview, setUserReview]   = useState(null);
+  
+  // Check if user is tenant
+  const isTenant = profile?.role === 'Tenant' || profile?.role === 'RENTEE';
+  const canReview = user && isTenant && booked;
 
-  // Fetch room data and images from backend
+  // Normalize room data from Supabase to match UI expectations
+  const normalizeRoomData = (rawData) => {
+    if (!rawData) return null;
+    return {
+      ...rawData,
+      roomid: rawData.roomid,  // Explicitly preserve the database roomid (BIGINT)
+      id: rawData.id,           // Explicitly preserve the database id (BIGSERIAL)
+      roomTitle: rawData.roomtitle || rawData.title || 'Unnamed Room',
+      roomDescription: rawData.roomdescription || rawData.description || '',
+      roomStatus: rawData.roomstatus || 'AVAILABLE',
+      amount: rawData.amount || rawData.price || 0,
+      maxRoommates: rawData.maxroommates || 1,
+      roomType: rawData.roomtype || 'Apartment',
+      allergies: rawData.allergies || [],
+      amenities: rawData.amenities || [],
+      address: rawData.address || {
+        addressLine: rawData.addressline || '',
+        city: rawData.city || '',
+        country: rawData.country || ''
+      },
+      renter: rawData.renter || {
+        full_name: rawData.rentername || 'Landlord',
+        profileImage: rawData.renterimage || ''
+      },
+      avgRating: rawData.avgrating || 0,
+      totalReviews: rawData.totalreviews || 0
+    };
+  };
+
+  // Fetch room data directly from Supabase
   useEffect(() => {
     const fetchRoomData = async () => {
       try {
         setLoading(true);
         
-        // Fetch room details
-        const roomResponse = await axiosClient.get(`/rooms/${id}`);
-        const roomData = roomResponse.data;
+        // Get roomId from URL param
+        const roomIdStr = String(id).trim();
+        const roomId = parseInt(roomIdStr, 10);
         
-        // Fetch images for this room
-        let roomImages = [];
-        try {
-          const imagesResponse = await axiosClient.get(`/rooms/${id}/images`);
-          roomImages = imagesResponse.data.map(img => img.imageUrl).filter(url => url);
-        } catch (imgErr) {
-          console.warn('No images found for room:', imgErr.message);
-          roomImages = [];
+        console.log('Fetching room - URL id:', id, 'parsed roomId:', roomId);
+
+        // Query Supabase for the room
+        const { data: roomsData, error: queryError } = await supabase
+          .from('rooms')
+          .select('*')
+          .eq('roomid', roomId);
+
+        if (queryError || !roomsData || roomsData.length === 0) {
+          console.error('Room not found:', { roomId, queryError });
+          setError('Room not found');
+          setLoading(false);
+          return;
         }
-        
+
+        const rawRoomData = roomsData[0];
+        const roomData = normalizeRoomData(rawRoomData);
         setRoom(roomData);
-        setImages(roomImages);
+        console.log('✓ Fetched room:', roomData);
+
+        // Fetch images from Supabase Storage
+        // Use the actual roomid from the database, not the URL param
+        const actualRoomId = rawRoomData.roomid || roomId;
+        console.log('🖼️ Fetching images for roomId:', actualRoomId);
         
-        // Fetch similar rooms from backend
         try {
-          const similarResponse = await axiosClient.get('/rooms/search', {
-            params: { city: roomData.address?.city, limit: 3 }
-          });
-          const similarRooms = (similarResponse.data.content || []).map(r => ({
-            id: r.roomId,
-            title: r.roomTitle,
-            location: `${r.city}, ${r.country}`,
-            price: r.amount,
-            type: 'Apartment',
-            images: [r.imageUrl || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688'],
-            available: r.roomStatus === 'AVAILABLE',
-            rating: 4.5,
-            reviews: 0,
-            bedrooms: r.maxRoommates || 1
-          })).filter(r => r.id !== Number(id)).slice(0, 3);
-          setSimilar(similarRooms);
-        } catch (simErr) {
-          console.warn('Could not fetch similar rooms', simErr);
-          setSimilar([]);
+          const { data: storageFiles, error: storageError } = await supabase.storage
+            .from('RoomImages')
+            .list(String(actualRoomId), {
+              limit: 100,
+              offset: 0,
+              sortBy: { column: 'name', order: 'asc' }
+            });
+
+          console.log('Storage response:', { storageError, fileCount: storageFiles?.length });
+
+          if (!storageError && storageFiles && storageFiles.length > 0) {
+            const fileUrls = storageFiles.map(file => {
+              const { data: urlData } = supabase.storage
+                .from('RoomImages')
+                .getPublicUrl(`${actualRoomId}/${file.name}`);
+              console.log('Image URL:', urlData?.publicUrl);
+              return urlData?.publicUrl;
+            }).filter(url => url);
+
+            console.log('✓ Found', fileUrls.length, 'images');
+            setImages(fileUrls.length > 0 ? fileUrls : ['https://via.placeholder.com/800x600?text=Room+Image']);
+          } else {
+            console.warn('No images found in storage');
+            setImages(['https://via.placeholder.com/800x600?text=Room+Image']);
+          }
+        } catch (imgErr) {
+          console.warn('Could not fetch images:', imgErr);
+          setImages(['https://via.placeholder.com/800x600?text=Room+Image']);
         }
-        
+
+        // Check if already booked
+        if (user) {
+          const { data: bookingData, error: bookingError } = await supabase
+            .from('bookings')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('room_id', roomId);
+
+          if (!bookingError && bookingData && bookingData.length > 0) {
+            setBooked(true);
+          }
+        }
+
         setError(null);
       } catch (err) {
-        console.error('Error fetching room data:', err);
-        setError(err.message);
-        setSimilar([]);
+        console.error('Error fetching room:', err);
+        setError(`Error: ${err.message}`);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRoomData();
-  }, [id]);
+    if (!authLoading) {
+      fetchRoomData();
+    }
+  }, [id, user, authLoading]);
 
   /* ── Share ── */
   const handleShare = () => {
@@ -181,24 +256,55 @@ const ListingPage = () => {
 
   /* ── Book Room ── */
   const handleBook = async () => {
-    // For now, using a mock user ID. Replace with actual user from auth.
-    const mockUserId = 1;
+    if (!user) {
+      alert('Please log in to book a room');
+      navigate('/login');
+      return;
+    }
+
+    if (!isTenant) {
+      alert('Only tenants can book rooms. Please sign up as a tenant.');
+      navigate('/signup/tenant');
+      return;
+    }
 
     setIsBooking(true);
     try {
-      const result = await createBooking(mockUserId, room.id || room.roomId);
+      const effectiveRoomId = room.roomid || room.id || room.roomId;
+      console.log('Booking params - userId:', user.id, 'type:', typeof user.id);
+      console.log('Booking params - roomId candidates:', { 'room.roomid': room.roomid, 'room.id': room.id, 'room.roomId': room.roomId });
+      console.log('Effective roomId:', effectiveRoomId, 'type:', typeof effectiveRoomId);
+      
+      if (!user.id) {
+        setBookingMsg('Error: User ID not found. Please log in again.');
+        setTimeout(() => setBookingMsg(''), 3000);
+        setIsBooking(false);
+        return;
+      }
 
-      if (result) {
+      if (!effectiveRoomId) {
+        setBookingMsg('Error: Room ID not found.');
+        setTimeout(() => setBookingMsg(''), 3000);
+        setIsBooking(false);
+        return;
+      }
+
+      const result = await createBooking(user.id, effectiveRoomId);
+
+      if (result && result.length > 0) {
         setBooked(true);
         setBookingMsg('✓ Room booked successfully!');
         setTimeout(() => setBookingMsg(''), 3000);
       } else {
-        setBookingMsg('Failed to book room. Please try again.');
-        setTimeout(() => setBookingMsg(''), 3000);
+        console.error('Booking failed - no result data returned');
+        setBookingMsg('Failed to book room. Please check the console and try again.');
+        setTimeout(() => setBookingMsg(''), 5000);
       }
     } catch (error) {
-      setBookingMsg('Error booking room. Please try again.');
-      setTimeout(() => setBookingMsg(''), 3000);
+      console.error('Error booking room:', error);
+      const errorMsg = error.message || error.toString();
+      setBookingMsg(`Error: ${errorMsg}`);
+      setTimeout(() => setBookingMsg(''), 5000);
     } finally {
       setIsBooking(false);
     }
@@ -438,22 +544,69 @@ const ListingPage = () => {
               </button>
             </div>
 
+            {/* Rating Display */}
+            {room && (
+              <div className="lst-rating-display">
+                <h3 className="lst-section-title">Room Ratings</h3>
+                <Suspense fallback={<p style={{color: '#999'}}>Loading ratings...</p>}>
+                  <RatingDisplay roomId={room.roomid || room.id || id} />
+                </Suspense>
+              </div>
+            )}
           </aside>
         </div>
 
-        {/* ── Similar Rooms ── */}
-        <div className="lst-similar-section">
-          <div className="lst-similar-hd">
-            <h2 className="lst-similar-title">Similar Rooms</h2>
-            <p className="lst-similar-desc">Other spaces you might like</p>
+        {/* ── Similar rooms ── */}
+        {similar.length > 0 && (
+          <div className="lst-divider">
+            <div className="lst-similar-section">
+              <h2 className="lst-similar-hd">Similar Rooms</h2>
+              <div className="lst-similar-grid">
+                {similar.map(r => (
+                  <RoomCard key={r.id} room={r} />
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="lst-similar-grid">
-            {similar.map(r => (
-              <RoomCard key={r.id} room={r} />
-            ))}
-          </div>
-        </div>
+        )}
 
+        {/* ── Authenticated Review Section ── */}
+        {room && (
+          <div className="lst-review-section">
+            {user && isTenant && booked ? (
+              // Logged in tenant who booked
+              <div className="lst-rating-form-section">
+                <h2 className="lst-section-title">Share Your Experience</h2>
+                <Suspense fallback={<p style={{color: '#999'}}>Loading review form...</p>}>
+                  <RateRoom roomId={room.roomid || room.id || id} userId={user.id} onReviewSubmitted={(review) => setUserReview(review)} />
+                </Suspense>
+              </div>
+            ) : !user ? (
+              // Not logged in
+              <div style={{ padding: '2rem', backgroundColor: '#f0f9ff', borderRadius: '12px', border: '1px solid #bfdbfe', textAlign: 'center' }}>
+                <h3 style={{ marginBottom: '1rem' }}>Want to share your review?</h3>
+                <p style={{ color: '#666', marginBottom: '1.5rem' }}>Log in as a tenant and book this room to leave a review.</p>
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button onClick={() => navigate('/login')} style={{ padding: '0.75rem 1.5rem', backgroundColor: '#1e293b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>Log In</button>
+                  <button onClick={() => navigate('/signup/tenant')} style={{ padding: '0.75rem 1.5rem', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>Sign Up</button>
+                </div>
+              </div>
+            ) : !isTenant ? (
+              // Logged in but not a tenant
+              <div style={{ padding: '2rem', backgroundColor: '#fef3c7', borderRadius: '12px', border: '1px solid #fcd34d', textAlign: 'center' }}>
+                <h3 style={{ marginBottom: '1rem' }}>Not a tenant yet?</h3>
+                <p style={{ color: '#666', marginBottom: '1.5rem' }}>Switch to a tenant account to book and review rooms.</p>
+                <button onClick={() => navigate('/signup/tenant')} style={{ padding: '0.75rem 1.5rem', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>Become a Tenant</button>
+              </div>
+            ) : user && isTenant && !booked ? (
+              // Logged in tenant but hasn't booked
+              <div style={{ padding: '2rem', backgroundColor: '#f5f3ff', borderRadius: '12px', border: '1px solid #ddd6fe', textAlign: 'center' }}>
+                <h3 style={{ marginBottom: '1rem' }}>Book first to review</h3>
+                <p style={{ color: '#666' }}>Book this room above to unlock the review feature and share your experience.</p>
+              </div>
+            ) : null}
+          </div>
+        )}
       </div>
     </div>
   );

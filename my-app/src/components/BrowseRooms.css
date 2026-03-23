@@ -379,6 +379,39 @@
   writing-mode: horizontal-tb;
 }
 
+/* ── View Tabs ── */
+.br-view-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem 0.5rem 1.5rem;
+  border-bottom: 1px solid #e6eeff;
+  background: #ffffff;
+}
+
+.br-tab {
+  padding: 0.65rem 1.2rem;
+  border: 1.5px solid transparent;
+  border-radius: 8px;
+  background: #f5f8ff;
+  color: #666;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.br-tab:hover {
+  background: #eef2ff;
+  border-color: #d0deff;
+}
+
+.br-tab--active {
+  background: #0057b8;
+  color: #ffffff;
+  border-color: #0057b8;
+}
+
 /*
    Mobile
  */

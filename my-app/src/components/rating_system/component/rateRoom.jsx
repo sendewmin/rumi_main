@@ -1,5 +1,5 @@
-import React, { useState } from "react"
-import { submitRating } from "../services/ratingService"
+import React, { useState, useEffect } from "react"
+import { submitRating, hasUserRated } from "../services/ratingService"
 import { checkBooking } from "../utils/checkBooking"
 import "./rateRoom.css"
 
@@ -10,6 +10,21 @@ function RateRoom({ roomId, userId }) {
   const [comment, setComment] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState("")
+  const [hasAlreadyRated, setHasAlreadyRated] = useState(false)
+  const [checkingRating, setCheckingRating] = useState(true)
+
+  // Check if user has already rated this room
+  useEffect(() => {
+    const checkExistingRating = async () => {
+      const alreadyRated = await hasUserRated(userId, roomId)
+      setHasAlreadyRated(alreadyRated)
+      setCheckingRating(false)
+    }
+    
+    if (userId && roomId) {
+      checkExistingRating()
+    }
+  }, [userId, roomId])
 
   // Rating preset tags matching each star level - rental room specific
   const ratingTags = {
@@ -46,8 +61,16 @@ function RateRoom({ roomId, userId }) {
 
       const result = await submitRating(userId, roomId, stars, selectedTags, comment)
 
-      if (result) {
+      if (result.error) {
+        setSubmitMessage(`Error: ${result.error}`)
+        setIsSubmitting(false)
+        return
+      }
+
+      if (result.data) {
         setSubmitMessage("Rating submitted successfully! ✓")
+        // Mark as rated to prevent future submissions
+        setHasAlreadyRated(true)
         // Reset form
         setTimeout(() => {
           setStars(0)
@@ -79,8 +102,15 @@ function RateRoom({ roomId, userId }) {
           <p className="rate-room-subtitle">Your feedback helps us improve</p>
         </div>
 
-        {/* Star Rating Section */}
-        <div className="rating-section">
+        {/* Already Rated Message */}
+        {!checkingRating && hasAlreadyRated ? (
+          <div className="already-rated-message">
+            ✓ You have already rated this room. Thank you for your feedback!
+          </div>
+        ) : (
+          <>
+            {/* Star Rating Section */}
+            <div className="rating-section">
           <div className="stars-container">
             <div className="stars-wrapper">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -164,6 +194,8 @@ function RateRoom({ roomId, userId }) {
             {isSubmitting ? "Submitting..." : "Submit Rating"}
           </button>
         </div>
+          </>
+        )}
 
         {/* Database Table Structure Comment */}
         {/* 
