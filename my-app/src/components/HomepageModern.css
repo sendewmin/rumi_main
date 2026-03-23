@@ -1260,3 +1260,109 @@
 .hp-signout-btn:hover {
   background: #fff5f5;
 }
+
+/* ══════════════════════════════════════════
+   Map View Button
+══════════════════════════════════════════ */
+.hp-map-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 18px;
+  height: 72px;
+  border-radius: 14px;
+  border: 1.5px solid #c8d9ff;
+  background: #ffffff;
+  color: #003f8a;
+  font-size: 0.87rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: inherit;
+  box-shadow: 0 4px 18px rgba(0, 53, 128, 0.08);
+  margin-left: 1.5rem;
+}
+
+.hp-map-btn:hover {
+  background: #eef4ff;
+  border-color: #003f8a;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(0, 53, 128, 0.14);
+}
+
+.hp-map-btn:active {
+  transform: scale(0.97);
+}
+
+.hp-map-btn--active {
+  background: linear-gradient(135deg, #003f8a 0%, #0057b8 100%);
+  border-color: #003f8a;
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(0, 87, 184, 0.28);
+}
+
+.hp-map-btn--active:hover {
+  background: linear-gradient(135deg, #002d66 0%, #0049a0 100%);
+  border-color: #002d66;
+}
+
+/* Map container animation */
+.hp-map-container {
+  margin: 0 1.5rem 1.5rem;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1.5px solid #c8d9ff;
+  box-shadow: 0 4px 20px rgba(0, 53, 128, 0.08);
+  animation: hp-map-slide-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes hp-map-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Search + map button row */
+.hp-search-row {
+  display: flex;
+  align-items: center;
+  padding: 1.1rem 1.5rem;
+  background: #f5f8ff;
+  border-bottom: 1px solid #e6eeff;
+  animation: hp-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
+  position: relative;
+  z-index: 20;
+  gap: 0;
+}
+
+@media (max-width: 860px) {
+  .hp-map-btn {
+    height: 52px;
+    padding: 0 14px;
+    font-size: 0.82rem;
+    margin-left: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .hp-map-btn {
+    height: 44px;
+    padding: 0 12px;
+    font-size: 0.78rem;
+    margin-left: 0.75rem;
+  }
+  .hp-search-row {
+    padding: 0.9rem 1rem;
+  }
+  .hp-map-container {
+    margin: 0 1rem 1rem;
+  }
+}
