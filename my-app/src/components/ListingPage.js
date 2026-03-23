@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 
 import RoomCard from './RoomCard';
 import axiosClient from '../api/rumi_client';
+import { createBooking, checkExistingBooking } from './rating_system/services/bookingService';
 import './ListingPage.css';
 
 /* ── Amenity icon map ── */
@@ -108,6 +109,9 @@ const ListingPage = () => {
   const [activeImg, setActiveImg]     = useState(0);
   const [contacted, setContacted]     = useState(false);
   const [shareMsg, setShareMsg]       = useState('');
+  const [isBooking, setIsBooking]     = useState(false);
+  const [bookingMsg, setBookingMsg]   = useState('');
+  const [booked, setBooked]           = useState(false);
 
   // Fetch room data and images from backend
   useEffect(() => {
@@ -175,7 +179,32 @@ const ListingPage = () => {
     setTimeout(() => setShareMsg(''), 2200);
   };
 
-  /* ── 404 / Loading ── */
+  /* ── Book Room ── */
+  const handleBook = async () => {
+    // For now, using a mock user ID. Replace with actual user from auth.
+    const mockUserId = 1;
+
+    setIsBooking(true);
+    try {
+      const result = await createBooking(mockUserId, room.id || room.roomId);
+
+      if (result) {
+        setBooked(true);
+        setBookingMsg('✓ Room booked successfully!');
+        setTimeout(() => setBookingMsg(''), 3000);
+      } else {
+        setBookingMsg('Failed to book room. Please try again.');
+        setTimeout(() => setBookingMsg(''), 3000);
+      }
+    } catch (error) {
+      setBookingMsg('Error booking room. Please try again.');
+      setTimeout(() => setBookingMsg(''), 3000);
+    } finally {
+      setIsBooking(false);
+    }
+  };
+
+  /* ── Loading ── */
   if (loading) {
     return (
       <div className="lst-shell">
@@ -189,6 +218,7 @@ const ListingPage = () => {
     );
   }
 
+  /* ── 404 / Not Found ── */
   if (!room) {
     return (
       <div className="lst-shell">
@@ -361,14 +391,21 @@ const ListingPage = () => {
               {room.roomStatus === 'AVAILABLE' ? (
                 <>
                   <button
-                    className={`lst-cta-btn${contacted ? ' done' : ''}`}
-                    onClick={() => setContacted(true)}
+                    className={`lst-cta-btn${booked ? ' done' : ''}`}
+                    onClick={handleBook}
+                    disabled={isBooking || booked}
+                    aria-busy={isBooking}
                   >
-                    {contacted ? '✓ Request Sent!' : 'Request to View'}
+                    {isBooking ? '⏳ Booking...' : booked ? '✓ Booked!' : 'Book Now'}
                   </button>
-                  {contacted && (
-                    <p className="lst-cta-msg">
-                      The landlord will contact you shortly.
+                  {bookingMsg && (
+                    <p className={`lst-cta-msg ${booked ? 'success' : 'error'}`}>
+                      {bookingMsg}
+                    </p>
+                  )}
+                  {booked && (
+                    <p className="lst-cta-msg success">
+                      Confirmation has been sent. You can now rate this room.
                     </p>
                   )}
                 </>
