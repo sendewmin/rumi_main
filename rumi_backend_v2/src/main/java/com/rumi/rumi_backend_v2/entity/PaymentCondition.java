@@ -9,17 +9,16 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Getter
+@Setter
 public class PaymentCondition {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="condition_id")
-    @Getter
     private Long conditionId;
 
     @Enumerated(EnumType.STRING)
-    @Getter
-    @Setter
     // In Supabase we ran a postreqsql query for the enum creation in the db and columndefinition to link it enum and column.
     @Column(name="condition_name",columnDefinition = "payment_condition_name",nullable=false )
     private PaymentConditionName conditionName;

@@ -37,7 +37,7 @@ public class RoomDetail {
     @Getter
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name = "gender_allowed", nullable = false)
+    @Column(name = "gender_allowed", nullable = true)
     private GenderAllowed genderAllowed;
 
     @Setter
@@ -96,15 +96,27 @@ public class RoomDetail {
     @Getter
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name = "room_status", nullable = false)
+    @Column(name = "room_status", nullable = true)
     private RoomStatus roomStatus;
 
     @Setter
     @Getter
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name="room_type", nullable = false)
+    @Column(name="room_type", nullable = true)
     private RoomType roomType;
+
+    @Setter
+    @Getter
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "approval_status", nullable = false)
+    private com.rumi.rumi_backend_v2.enums.ApprovalStatus approvalStatus;
+
+    @Setter
+    @Getter
+    @Column(name = "rejection_reason", columnDefinition = "TEXT", nullable = true)
+    private String rejectionReason;
 
     public void setRenter(User renter) {
         this.renter = renter;

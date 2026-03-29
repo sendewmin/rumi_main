@@ -3,6 +3,7 @@ package com.rumi.rumi_backend_v2.dto;
 import com.rumi.rumi_backend_v2.enums.GenderAllowed;
 import com.rumi.rumi_backend_v2.enums.RoomStatus;
 import com.rumi.rumi_backend_v2.enums.RoomType;
+import com.rumi.rumi_backend_v2.enums.ApprovalStatus;
 import com.rumi.rumi_backend_v2.enums.BillingCycle;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,6 +30,8 @@ public class RoomDetailResponse {
     private List<PaymentConditionDto> paymentConditions;
     private String renterId;
     private List<String> imageUrls;
+    private ApprovalStatus approvalStatus;
+    private String rejectionReason;
 
     @Data
     @Builder

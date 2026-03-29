@@ -176,10 +176,11 @@ const LandlordDashboard = () => {
     try {
       setLoadingListings(true);
       setListingsError('');
-      // Fetch all rooms from Supabase
+      // Fetch only the current landlord's rooms
       const { data: rooms, error } = await supabase
         .from('rooms')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -263,6 +264,7 @@ const LandlordDashboard = () => {
       // Insert directly to Supabase (use CAMELCASE column names to match schema)
       const roomData = {
         roomid: newRoomId,
+        user_id: user.id,
         roomtitle: formData.roomTitle,
         roomdescription: formData.roomDescription,
         roomstatus: formData.roomStatus,
@@ -290,11 +292,16 @@ const LandlordDashboard = () => {
 
       if (insertError) {
         console.error('Supabase insert error:', insertError);
-        setMessage(`❌ Error: ${insertError.message}`);
+        // If user_id column doesn't exist yet, show helpful message
+        if (insertError.message?.includes('user_id')) {
+          setMessage('Please refresh the page and try again');
+        } else {
+          setMessage(`Error: ${insertError.message}`);
+        }
         return;
       }
 
-      console.log('✓ Insert successful');
+      console.log('Room created successfully');
       
       const roomId = newRoomId;
       setSuccessId(roomId);

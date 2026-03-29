@@ -2,8 +2,7 @@ import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext";
 import { useEffect } from "react";
-import { clearAndReseedRooms } from "./api/supabaseDiagnostics";
-import DevHelper from "./components/DevHelper";
+// Supabase diagnostics removed - no longer needed in production
 
 import Homepage from "./components/Homepage";
 import LoginPage from "./components/LoginPage";
@@ -93,7 +92,6 @@ function App() {
   return (
     <BrowserRouter>
       <AppRoutes />
-      <DevHelper />
     </BrowserRouter>
   );
 }

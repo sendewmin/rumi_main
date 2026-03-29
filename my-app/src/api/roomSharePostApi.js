@@ -1,46 +1,41 @@
-import supabase from './supabaseClient';
+import axiosClient from './rumi_client';
 
 const roomSharePostApi = {
 
     getAllPosts: async () => {
-        console.log("Supabase URL:", process.env.REACT_APP_SUPABASE_URL);
-        const { data, error } = await supabase
-            .from('room_share_posts')
-            .select('*')
-            .order('created_at', { ascending: false });
-        if (error) throw error;
-        return data;
+        try {
+            const response = await axiosClient.get('/room-share-posts');
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching posts:", error);
+            throw error;
+        }
     },
 
     createPost: async (post) => {
-        console.log("Creating post:", post);
-        const { data, error } = await supabase
-            .from('room_share_posts')
-            .insert([post])
-            .select();
-        if (error) throw error;
-        return data;
+        try {
+            console.log("Creating post:", post);
+            const response = await axiosClient.post('/room-share-posts', post);
+            return response.data;
+        } catch (error) {
+            console.error("Error creating post:", error);
+            throw error;
+        }
     },
 
     filterPosts: async (filters) => {
-        let query = supabase
-            .from('room_share_posts')
-            .select('*')
-            .order('created_at', { ascending: false });
+        try {
+            const params = new URLSearchParams();
+            if (filters.location) params.append("location", filters.location);
+            if (filters.genderPreference) params.append("genderPreference", filters.genderPreference);
+            if (filters.maxRent) params.append("maxRent", filters.maxRent);
 
-        if (filters.location) {
-            query = query.ilike('location', `%${filters.location}%`);
+            const response = await axiosClient.get(`/room-share-posts/filter?${params.toString()}`);
+            return response.data;
+        } catch (error) {
+            console.error("Error filtering posts:", error);
+            throw error;
         }
-        if (filters.genderPreference) {
-            query = query.eq('gender_preference', filters.genderPreference);
-        }
-        if (filters.maxRent) {
-            query = query.lte('rent_per_person', filters.maxRent);
-        }
-
-        const { data, error } = await query;
-        if (error) throw error;
-        return data;
     }
 };
 

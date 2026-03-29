@@ -11,12 +11,9 @@ import com.rumi.rumi_backend_v2.repo.UserRepo;
 import com.rumi.rumi_backend_v2.service.RoomImageService;
 import com.rumi.rumi_backend_v2.util.SupabaseStorageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;

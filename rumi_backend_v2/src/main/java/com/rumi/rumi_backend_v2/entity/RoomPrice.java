@@ -24,7 +24,7 @@ public class RoomPrice {
     @Getter
     private RoomDetail room;
 
-    @Column(name="billing_cycle", nullable=false)
+    @Column(name="billing_cycle", nullable=true)
     @Getter
     @Setter
     @Enumerated(EnumType.STRING)

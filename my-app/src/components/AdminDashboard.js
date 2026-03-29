@@ -1,80 +1,11 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axiosClient from '../api/rumi_client';
+import supabase from '../api/supabaseClient';
+import { useAuth } from '../auth/AuthContext';
 import './AdminDashboard.css';
 
-/* ΓöÇΓöÇ Mock data ΓöÇΓöÇ */
-const mockPendingListings = [
-  {
-    id: 1,
-    title: 'Luxury Studio ΓÇö Colombo 7',
-    location: 'Colombo 7, Western Province',
-    landlord: 'Kasun Perera',
-    price: 'LKR 65,000 / mo',
-    type: 'Studio',
-    submittedDate: 'Mar 20, 2026',
-    image: 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=400&h=260',
-  },
-  {
-    id: 2,
-    title: '3BR House ΓÇö Negombo',
-    location: 'Negombo, Western Province',
-    landlord: 'Nimal Silva',
-    price: 'LKR 120,000 / mo',
-    type: 'House',
-    submittedDate: 'Mar 19, 2026',
-    image: 'https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg?auto=compress&cs=tinysrgb&w=400&h=260',
-  },
-  {
-    id: 3,
-    title: 'Annex ΓÇö Kandy City',
-    location: 'Kandy, Central Province',
-    landlord: 'Amali Fernando',
-    price: 'LKR 40,000 / mo',
-    type: 'Annex',
-    submittedDate: 'Mar 18, 2026',
-    image: 'https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&cs=tinysrgb&w=400&h=260',
-  },
-];
-
-const mockUsers = [
-  { id: 1, name: 'Kasun Perera',  email: 'kasun@mail.com',   role: 'landlord', joined: 'Jan 12, 2026', status: 'active' },
-  { id: 2, name: 'Amali Fernando',email: 'amali@mail.com',   role: 'tenant',   joined: 'Feb 3, 2026',  status: 'active' },
-  { id: 3, name: 'Nimal Silva',   email: 'nimal@mail.com',   role: 'landlord', joined: 'Dec 8, 2025',  status: 'banned' },
-  { id: 4, name: 'Sachini Dias',  email: 'sachini@mail.com', role: 'tenant',   joined: 'Mar 1, 2026',  status: 'active' },
-  { id: 5, name: 'Ruwan Gayan',   email: 'ruwan@mail.com',   role: 'tenant',   joined: 'Feb 20, 2026', status: 'active' },
-  { id: 6, name: 'Ishara Madhu',  email: 'ishara@mail.com',  role: 'landlord', joined: 'Nov 15, 2025', status: 'banned' },
-];
-
-const mockReports = [
-  {
-    id: 1,
-    listingTitle: 'Cheap Room ΓÇö Wellawatte',
-    landlord: 'Ruwan Gayan',
-    reportCount: 5,
-    reason: 'Misleading photos ΓÇö actual room looks completely different',
-    reportedBy: 'Amali Fernando',
-    date: 'Mar 20, 2026',
-  },
-  {
-    id: 2,
-    listingTitle: 'Boarding Room ΓÇö Dehiwala',
-    landlord: 'Unknown Landlord',
-    reportCount: 3,
-    reason: 'Potential scam ΓÇö landlord asked for large deposit upfront and disappeared',
-    reportedBy: 'Sachini Dias',
-    date: 'Mar 17, 2026',
-  },
-];
-
-const recentActivity = [
-  { id: 1, text: 'New listing submitted by Kasun Perera ΓÇö Colombo 7',    time: '2 min ago',  color: 'blue' },
-  { id: 2, text: 'User Nimal Silva was banned by Admin',                   time: '1 hr ago',   color: 'red' },
-  { id: 3, text: 'Listing "Annex ΓÇö Galle" was approved',                   time: '3 hr ago',   color: 'green' },
-  { id: 4, text: 'New report filed on "Cheap Room ΓÇö Wellawatte"',          time: '5 hr ago',   color: 'amber' },
-  { id: 5, text: 'New tenant registered: Sachini Dias',                    time: 'Yesterday',  color: 'blue' },
-];
-
-/* ΓöÇΓöÇ Icons (inline SVG) ΓöÇΓöÇ */
+/* Icons (inline SVG) */
 const IconGrid = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ad-nav-icon">
     <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
@@ -215,74 +146,165 @@ const ReportCard = ({ report, onDismiss, onRemove }) => (
 );
 
 /* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
-   Main Component
+   Main Component - Admin Dashboard
 ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const { profile, loading: authLoading } = useAuth();
+  const [activeTab, setActiveTab] = useState('approvals');
+  
+  const [pendingListings, setPendingListings] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [statistics, setStatistics] = useState({ pending: 0, approved: 0, rejected: 0, total: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [selectedListingForReject, setSelectedListingForReject] = useState(null);
 
-  const [pendingListings, setPendingListings] = useState(mockPendingListings);
-  const [users, setUsers] = useState(mockUsers);
-  const [reports, setReports] = useState(mockReports);
-  const [userSearch, setUserSearch] = useState('');
-  const [userFilter, setUserFilter] = useState('all');
-
-  /* ΓöÇΓöÇ Approval handlers ΓöÇΓöÇ */
-  const handleApprove = (id) => {
-    setPendingListings(prev => prev.filter(l => l.id !== id));
-  };
-  const handleReject = (id) => {
-    setPendingListings(prev => prev.filter(l => l.id !== id));
-  };
-
-  /* ΓöÇΓöÇ User ban toggle ΓöÇΓöÇ */
-  const handleToggleBan = (id) => {
-    setUsers(prev => prev.map(u =>
-      u.id === id ? { ...u, status: u.status === 'active' ? 'banned' : 'active' } : u
-    ));
+  // Get auth token
+  const getAuthHeader = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) throw new Error('Not authenticated');
+    return `Bearer ${session.access_token}`;
   };
 
-  /* ΓöÇΓöÇ Report handlers ΓöÇΓöÇ */
-  const handleDismiss = (id) => setReports(prev => prev.filter(r => r.id !== id));
-  const handleRemove  = (id) => setReports(prev => prev.filter(r => r.id !== id));
+  // Fetch initial data
+  useEffect(() => {
+    const fetchData = async () => {
+      if (authLoading) return;
+      
+      if (profile?.role !== 'ADMIN') {
+        setError('Access denied. Admin privileges required.');
+        return;
+      }
 
-  /* ΓöÇΓöÇ Filtered users ΓöÇΓöÇ */
-  const filteredUsers = users.filter(u => {
-    const matchesSearch =
-      u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
-      u.email.toLowerCase().includes(userSearch.toLowerCase());
-    const matchesFilter =
-      userFilter === 'all' ||
-      (userFilter === 'tenants'   && u.role === 'tenant') ||
-      (userFilter === 'landlords' && u.role === 'landlord') ||
-      (userFilter === 'banned'    && u.status === 'banned');
-    return matchesSearch && matchesFilter;
-  });
+      try {
+        setLoading(true);
+        const token = await getAuthHeader();
+        
+        // Fetch pending listings
+        const listingsResponse = await axiosClient.get('/admin/listings/pending?page=0&size=100', {
+          headers: { Authorization: token }
+        });
+        setPendingListings(listingsResponse.data.content || []);
+        
+        // Fetch statistics
+        const statsResponse = await axiosClient.get('/admin/statistics', {
+          headers: { Authorization: token }
+        });
+        setStatistics(statsResponse.data);
+        
+        // Fetch users
+        const usersResponse = await axiosClient.get('/admin/users?page=0&size=100', {
+          headers: { Authorization: token }
+        });
+        setUsers(usersResponse.data.content || []);
+      } catch (err) {
+        console.error('Error fetching admin data:', err);
+        setError('Failed to load admin dashboard');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  /* ΓöÇΓöÇ Stats ΓöÇΓöÇ */
-  const totalUsers      = users.length;
-  const bannedCount     = users.filter(u => u.status === 'banned').length;
-  const activeListings  = 24; // mock value
-  const pendingCount    = pendingListings.length;
+    fetchData();
+  }, [authLoading, profile]);
 
-  /* ΓöÇΓöÇ Tab page title ΓöÇΓöÇ */
-  const tabMeta = {
-    dashboard: { title: 'Admin Dashboard',     subtitle: 'Platform overview' },
-    approvals: { title: 'Listings for Approval', subtitle: `${pendingCount} listing${pendingCount !== 1 ? 's' : ''} awaiting review` },
-    users:     { title: 'User Management',      subtitle: `${totalUsers} registered users` },
-    reports:   { title: 'Flagged Reports',      subtitle: `${reports.length} active report${reports.length !== 1 ? 's' : ''}` },
+  // Handle approve
+  const handleApprove = async (roomId) => {
+    try {
+      const token = await getAuthHeader();
+      await axiosClient.put(`/admin/listings/${roomId}/approve`, {}, {
+        headers: { Authorization: token }
+      });
+      // Refresh data
+      setPendingListings(prev => prev.filter(l => l.roomId !== roomId));
+      setStatistics(prev => ({
+        ...prev,
+        pending: prev.pending - 1,
+        approved: prev.approved + 1
+      }));
+    } catch (err) {
+      console.error('Error approving listing:', err);
+      alert('Failed to approve listing');
+    }
   };
 
-  const navItems = [
-    { id: 'dashboard', label: 'Overview',  icon: <IconGrid /> },
-    { id: 'approvals', label: 'Approvals', icon: <IconCheckCircle />, badge: pendingCount || null },
-    { id: 'users',     label: 'Users',     icon: <IconUsers /> },
-    { id: 'reports',   label: 'Reports',   icon: <IconFlag />, badge: reports.length || null },
-  ];
+  // Handle reject
+  const handleReject = async (roomId) => {
+    if (!rejectReason.trim()) {
+      alert('Please provide a rejection reason');
+      return;
+    }
+    try {
+      const token = await getAuthHeader();
+      await axiosClient.put(`/admin/listings/${roomId}/reject`, 
+        { reason: rejectReason },
+        { headers: { Authorization: token } }
+      );
+      // Refresh data
+      setPendingListings(prev => prev.filter(l => l.roomId !== roomId));
+      setRejectReason('');
+      setSelectedListingForReject(null);
+      setStatistics(prev => ({
+        ...prev,
+        pending: prev.pending - 1,
+        rejected: prev.rejected + 1
+      }));
+    } catch (err) {
+      console.error('Error rejecting listing:', err);
+      alert('Failed to reject listing');
+    }
+  };
+
+  // Handle ban user
+  const handleBanUser = async (userId) => {
+    try {
+      const token = await getAuthHeader();
+      await axiosClient.put(`/admin/users/${userId}/ban`, {}, {
+        headers: { Authorization: token }
+      });
+      // Update local state
+      setUsers(prev => prev.map(u => 
+        u.userId === userId ? { ...u, status: 'SUSPENDED' } : u
+      ));
+    } catch (err) {
+      console.error('Error banning user:', err);
+      alert('Failed to ban user');
+    }
+  };
+
+  // Handle unban user
+  const handleUnbanUser = async (userId) => {
+    try {
+      const token = await getAuthHeader();
+      await axiosClient.put(`/admin/users/${userId}/unban`, {}, {
+        headers: { Authorization: token }
+      });
+      // Update local state
+      setUsers(prev => prev.map(u => 
+        u.userId === userId ? { ...u, status: 'ACTIVE' } : u
+      ));
+    } catch (err) {
+      console.error('Error unbanning user:', err);
+      alert('Failed to unban user');
+    }
+  };
+
+  /* Display error or loading */
+  if (authLoading || loading) return <div className="ad-shell"><p style={{padding: '2rem'}}>Loading...</p></div>;
+  if (error) return <div className="ad-shell"><p style={{padding: '2rem', color: 'red'}}>{error}</p></div>;
+  if (profile?.role !== 'ADMIN') {
+    return (
+      <div className="ad-shell">
+        <p style={{padding: '2rem', color: 'red'}}>Access Denied. Admin role required.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="ad-shell">
-      {/* ΓöÇΓöÇ Sidebar ΓöÇΓöÇ */}
+      {/* Sidebar */}
       <aside className="ad-sidebar">
         <div className="ad-sidebar-brand">
           <div className="ad-logo"><span className="ad-logo-text">RUMI</span></div>
@@ -294,19 +316,16 @@ const AdminDashboard = () => {
 
         <span className="ad-admin-badge">Admin Panel</span>
 
-        <nav className="ad-nav" aria-label="Admin navigation">
-          {navItems.map(item => (
-            <button
-              key={item.id}
-              className={`ad-nav-item ${activeTab === item.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(item.id)}
-              aria-current={activeTab === item.id ? 'page' : undefined}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-              {item.badge ? <span className="ad-nav-badge">{item.badge}</span> : null}
-            </button>
-          ))}
+        <nav className="ad-nav">
+          <button className="ad-nav-item active" onClick={() => setActiveTab('approvals')}>
+            <IconCheckCircle />
+            <span>Pending Approvals</span>
+            {pendingListings.length > 0 && <span className="ad-nav-badge">{pendingListings.length}</span>}
+          </button>
+          <button className="ad-nav-item" onClick={() => setActiveTab('users')}>
+            <IconUsers />
+            <span>Manage Users</span>
+          </button>
         </nav>
 
         <div className="ad-sidebar-footer">
@@ -317,13 +336,13 @@ const AdminDashboard = () => {
         </div>
       </aside>
 
-      {/* ΓöÇΓöÇ Main ΓöÇΓöÇ */}
+      {/* Main */}
       <main className="ad-main">
-        {/* Top bar */}
+        {/* Topbar */}
         <div className="ad-topbar">
           <div>
-            <h1 className="ad-page-title">{tabMeta[activeTab].title}</h1>
-            <p className="ad-page-subtitle">{tabMeta[activeTab].subtitle}</p>
+            <h1 className="ad-page-title">Listings for Approval</h1>
+            <p className="ad-page-subtitle">{pendingListings.length} listing{pendingListings.length !== 1 ? 's' : ''} awaiting your review</p>
           </div>
           <div className="ad-topbar-right">
             <div className="ad-admin-chip">
@@ -333,185 +352,178 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* ΓöÇΓöÇ Content ΓöÇΓöÇ */}
-        <div className="ad-content" key={activeTab}>
-
-          {/* ΓòÉΓòÉ Dashboard Tab ΓòÉΓòÉ */}
-          {activeTab === 'dashboard' && (
-            <>
-              <div className="ad-stats-row">
-                <StatCard
-                  value={pendingCount}
-                  label="Pending Approvals"
-                  colorClass="amber"
-                  icon={<IconCheckCircle />}
-                />
-                <StatCard
-                  value={totalUsers}
-                  label="Total Users"
-                  colorClass="blue"
-                  icon={<IconUsers />}
-                />
-                <StatCard
-                  value={activeListings}
-                  label="Active Listings"
-                  colorClass="green"
-                  icon={<IconHome />}
-                />
-                <StatCard
-                  value={bannedCount}
-                  label="Banned Users"
-                  colorClass="red"
-                  icon={<IconFlag />}
-                />
-              </div>
-
-              <div>
-                <div className="ad-section-hd">
-                  <h2 className="ad-section-title">Recent Activity</h2>
-                </div>
-                <div className="ad-activity-list">
-                  {recentActivity.map(a => (
-                    <div className="ad-activity-item" key={a.id}>
-                      <span className={`ad-activity-dot ${a.color}`} />
-                      <span className="ad-activity-text">{a.text}</span>
-                      <span className="ad-activity-time">{a.time}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {pendingListings.length > 0 && (
-                <div>
-                  <div className="ad-section-hd">
-                    <h2 className="ad-section-title">Needs Approval</h2>
-                    <span className="ad-section-count">{pendingListings.length} pending</span>
-                  </div>
-                  <div className="ad-approval-list">
-                    {pendingListings.slice(0, 2).map(l => (
-                      <ApprovalCard
-                        key={l.id}
-                        listing={l}
-                        onApprove={handleApprove}
-                        onReject={handleReject}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* ΓòÉΓòÉ Approvals Tab ΓòÉΓòÉ */}
-          {activeTab === 'approvals' && (
-            <div>
-              <div className="ad-section-hd">
-                <h2 className="ad-section-title">Pending Listings</h2>
-                <span className="ad-section-count">{pendingListings.length} pending</span>
-              </div>
-              {pendingListings.length > 0 ? (
-                <div className="ad-approval-list">
-                  {pendingListings.map(l => (
-                    <ApprovalCard
-                      key={l.id}
-                      listing={l}
-                      onApprove={handleApprove}
-                      onReject={handleReject}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="ad-empty">
-                  <div className="ad-empty-icon">≡ƒÄë</div>
-                  <p className="ad-empty-text">No pending approvals ΓÇö all caught up!</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ΓòÉΓòÉ Users Tab ΓòÉΓòÉ */}
-          {activeTab === 'users' && (
-            <div>
-              <div className="ad-users-toolbar">
-                <div className="ad-search-wrap">
-                  <IconSearch />
-                  <input
-                    type="text"
-                    className="ad-search-input"
-                    placeholder="Search users..."
-                    value={userSearch}
-                    onChange={e => setUserSearch(e.target.value)}
-                    aria-label="Search users"
-                  />
-                </div>
-                <div className="ad-filter-group">
-                  {[
-                    { id: 'all',       label: 'All' },
-                    { id: 'tenants',   label: 'Tenants' },
-                    { id: 'landlords', label: 'Landlords' },
-                    { id: 'banned',    label: 'Banned' },
-                  ].map(f => (
-                    <button
-                      key={f.id}
-                      className={`ad-filter-btn ${userFilter === f.id ? 'active' : ''}`}
-                      onClick={() => setUserFilter(f.id)}
-                    >
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {filteredUsers.length > 0 ? (
-                <div className="ad-users-list">
-                  <div className="ad-users-header" aria-hidden="true">
-                    <span>Name</span>
-                    <span>Email</span>
-                    <span>Role</span>
-                    <span>Joined</span>
-                    <span>Actions</span>
-                  </div>
-                  {filteredUsers.map(u => (
-                    <UserRow key={u.id} user={u} onToggleBan={handleToggleBan} />
-                  ))}
-                </div>
-              ) : (
-                <div className="ad-empty">
-                  <div className="ad-empty-icon">≡ƒöì</div>
-                  <p className="ad-empty-text">No users match your search.</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ΓòÉΓòÉ Reports Tab ΓòÉΓòÉ */}
-          {activeTab === 'reports' && (
-            <div>
-              <div className="ad-section-hd">
-                <h2 className="ad-section-title">Flagged Listings</h2>
-                <span className="ad-section-count">{reports.length} active</span>
-              </div>
-              {reports.length > 0 ? (
-                <div className="ad-reports-list">
-                  {reports.map(r => (
-                    <ReportCard
-                      key={r.id}
-                      report={r}
-                      onDismiss={handleDismiss}
-                      onRemove={handleRemove}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="ad-empty">
-                  <div className="ad-empty-icon">Γ£à</div>
-                  <p className="ad-empty-text">No active reports ΓÇö platform is clean!</p>
-                </div>
-              )}
-            </div>
-          )}
-
+        {/* Stats */}
+        <div className="ad-stats-grid">
+          <StatCard 
+            value={statistics.pending} 
+            label="Pending" 
+            colorClass="ad-stat-pending"
+            icon={<span>⏳</span>}
+          />
+          <StatCard 
+            value={statistics.approved} 
+            label="Approved" 
+            colorClass="ad-stat-approved"
+            icon={<span>✓</span>}
+          />
+          <StatCard 
+            value={statistics.rejected} 
+            label="Rejected" 
+            colorClass="ad-stat-rejected"
+            icon={<span>✕</span>}
+          />
+          <StatCard 
+            value={statistics.total} 
+            label="Total" 
+            colorClass="ad-stat-total"
+            icon={<span>#</span>}
+          />
         </div>
+
+        {/* Approvals Grid */}
+        {pendingListings.length === 0 ? (
+          <div style={{padding: '2rem', textAlign: 'center', color: '#94a3b8'}}>
+            <p>No pending listings to review</p>
+          </div>
+        ) : (
+          <div className="ad-approvals-grid">
+            {pendingListings.map(listing => (
+              <div key={listing.roomId} className="ad-approval-card">
+                <div className="ad-approval-img-wrap">
+                  <div className="ad-approval-img" style={{backgroundColor: '#e2e8f0'}}>
+                    {listing.roomId}
+                  </div>
+                </div>
+                <div className="ad-approval-body">
+                  <div className="ad-approval-top">
+                    <div>
+                      <p className="ad-approval-title">{listing.roomTitle}</p>
+                      <p className="ad-approval-sub">
+                        {listing.address?.city}, {listing.address?.country}
+                      </p>
+                      <p className="ad-approval-sub" style={{marginTop: '2px'}}>
+                        by {listing.renter?.full_name || 'Unknown Renter'}
+                      </p>
+                    </div>
+                    <span className="ad-badge ad-badge-pending">Pending</span>
+                  </div>
+                  <div className="ad-approval-footer">
+                    <span className="ad-approval-price">
+                      LKR {listing.price?.amount?.toLocaleString('en-LK') || 'N/A'} / mo
+                    </span>
+                    <span className="ad-approval-meta">{listing.roomType}</span>
+                    <div className="ad-approval-actions">
+                      <button 
+                        className="ad-btn ad-btn-approve"
+                        onClick={() => handleApprove(listing.roomId)}
+                      >
+                        Approve
+                      </button>
+                      <button 
+                        className="ad-btn ad-btn-reject"
+                        onClick={() => setSelectedListingForReject(listing.roomId)}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Reject Modal */}
+        {selectedListingForReject && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', zIndex: 999
+          }}>
+            <div style={{
+              backgroundColor: 'white', borderRadius: '8px', padding: '2rem',
+              minWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+            }}>
+              <h2 style={{marginBottom: '1rem'}}>Reject Listing</h2>
+              <p style={{marginBottom: '1rem', color: '#64748b'}}>
+                Please provide a reason for rejection:
+              </p>
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Reason for rejection..."
+                style={{
+                  width: '100%', minHeight: '100px', padding: '0.5rem',
+                  border: '1px solid #cbd5e1', borderRadius: '4px',
+                  fontFamily: 'inherit', marginBottom: '1rem'
+                }}
+              />
+              <div style={{display: 'flex', gap: '0.5rem', justifyContent: 'flex-end'}}>
+                <button
+                  className="ad-btn ad-btn-dismiss"
+                  onClick={() => setSelectedListingForReject(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="ad-btn ad-btn-remove"
+                  onClick={() => handleReject(selectedListingForReject)}
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Users Tab */}
+        {activeTab === 'users' && (
+          <div>
+            <div className="ad-section-hd">
+              <h2 className="ad-section-title">All Users</h2>
+              <span className="ad-section-count">{users.length} total</span>
+            </div>
+            {users.length > 0 ? (
+              <div style={{backgroundColor: '#f8fafc', borderRadius: '8px', overflow: 'hidden'}}>
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1.2fr 0.8fr 0.8fr 0.8fr', gap: '1rem', padding: '1rem', borderBottom: '1px solid #e2e8f0', fontWeight: 600, fontSize: '0.875rem', color: '#64748b'}}>
+                  <span>Name</span>
+                  <span>Email</span>
+                  <span>Role</span>
+                  <span>Status</span>
+                  <span>Action</span>
+                </div>
+                {users.map(user => (
+                  <div key={user.userId} style={{display: 'grid', gridTemplateColumns: '1fr 1.2fr 0.8fr 0.8fr 0.8fr', gap: '1rem', padding: '1rem', borderBottom: '1px solid #e2e8f0', alignItems: 'center'}}>
+                    <span style={{fontWeight: 500}}>{user.fullName}</span>
+                    <span style={{fontSize: '0.875rem', color: '#64748b'}}>{user.email}</span>
+                    <span style={{fontSize: '0.875rem', backgroundColor: user.role === 'ADMIN' ? '#dcfce7' : '#e0f2fe', color: user.role === 'ADMIN' ? '#166534' : '#0369a1', padding: '0.25rem 0.5rem', borderRadius: '4px', width: 'fit-content'}}>{user.role}</span>
+                    <span style={{fontSize: '0.875rem', backgroundColor: user.status === 'ACTIVE' ? '#dcfce7' : '#fee2e2', color: user.status === 'ACTIVE' ? '#166534' : '#991b1b', padding: '0.25rem 0.5rem', borderRadius: '4px', width: 'fit-content'}}>{user.status}</span>
+                    <button
+                      className="ad-btn"
+                      style={{
+                        backgroundColor: user.status === 'ACTIVE' ? '#dc2626' : '#16a34a',
+                        color: 'white',
+                        padding: '0.375rem 0.75rem',
+                        fontSize: '0.875rem',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        width: 'fit-content'
+                      }}
+                      onClick={() => user.status === 'ACTIVE' ? handleBanUser(user.userId) : handleUnbanUser(user.userId)}
+                    >
+                      {user.status === 'ACTIVE' ? 'Ban' : 'Unban'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{padding: '2rem', textAlign: 'center', color: '#94a3b8'}}>
+                <p>No users found</p>
+              </div>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );

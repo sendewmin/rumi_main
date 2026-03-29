@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MessageCircle, Calendar, Zap, FileText, CheckCircle, BarChart3, DollarSign, Lock, Users, Shield, Star, User, Building2 } from 'lucide-react';
+import { Search, MessageCircle, Calendar, Zap, FileText, CheckCircle, BarChart3, DollarSign, Lock, Users, Shield, Star, User, Building2, Home } from 'lucide-react';
 import Footer from './Footer';
 import './HowItWorks.css';
 
@@ -18,6 +18,7 @@ const getIcon = (iconName) => {
     '🔒': <Lock size={28} />,
     '🤝': <Users size={28} />,
     '🏆': <Star size={28} />,
+    '🏠': <Home size={28} />,
   };
   return iconMap[iconName] || iconName;
 };

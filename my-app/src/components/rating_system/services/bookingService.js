@@ -1,4 +1,4 @@
-import supabase from "../../../api/supabaseClient"
+import axiosClient from "../../../api/rumi_client"
 
 /**
  * Create a booking for a user
@@ -24,28 +24,14 @@ export async function createBooking(userId, roomId) {
     console.log("Creating booking with:", { userId, parsedRoomId, roomIdType: typeof roomId });
     console.log("userId type:", typeof userId, "roomId type:", typeof parsedRoomId);
 
-    const { data, error } = await supabase
-      .from("bookings")
-      .insert([
-        {
-          user_id: userId,
-          room_id: parsedRoomId,
-          status: "confirmed",
-        },
-      ])
-      .select()
+    const response = await axiosClient.post("/bookings", {
+      user_id: userId,
+      room_id: parsedRoomId,
+      status: "confirmed",
+    })
 
-    if (error) {
-      console.error("Booking error details:", error);
-      console.error("Error code:", error.code);
-      console.error("Error message:", error.message);
-      console.error("Error hint:", error.hint);
-      console.error("Error details:", error.details);
-      throw new Error(`Booking failed: ${error.message}`);
-    }
-
-    console.log("Booking created successfully:", data);
-    return data;
+    console.log("Booking created successfully:", response.data);
+    return response.data;
   } catch (error) {
     console.error("Unexpected error creating booking:", error);
     throw error;
@@ -61,18 +47,8 @@ export async function createBooking(userId, roomId) {
  */
 export async function checkExistingBooking(userId, roomId) {
   try {
-    const { data, error } = await supabase
-      .from("bookings")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("room_id", roomId)
-
-    if (error) {
-      console.error("Booking check error:", error)
-      return false
-    }
-
-    return data && data.length > 0
+    const response = await axiosClient.get(`/bookings/check/${userId}/${roomId}`)
+    return response.data.exists || false
   } catch (error) {
     console.error("Unexpected error checking booking:", error)
     return false

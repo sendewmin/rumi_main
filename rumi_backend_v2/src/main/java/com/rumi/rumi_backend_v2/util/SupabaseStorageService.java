@@ -7,7 +7,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 @Service
@@ -48,6 +47,7 @@ public class SupabaseStorageService {
 
     }
 
+    @SuppressWarnings("deprecation")
     private HttpURLConnection getHttpURLConnection(MultipartFile file, String uploadUrl) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) new URL(uploadUrl).openConnection();  // This opens the connection for the supabase
         connection.setRequestMethod("POST");  // here we say the connection as POST

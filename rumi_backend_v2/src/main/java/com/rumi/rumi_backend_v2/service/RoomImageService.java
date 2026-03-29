@@ -1,7 +1,6 @@
 package com.rumi.rumi_backend_v2.service;
 
 import com.rumi.rumi_backend_v2.dto.RoomImageDto;
-import com.rumi.rumi_backend_v2.repo.RoomRepo;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;

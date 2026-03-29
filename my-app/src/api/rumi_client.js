@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL: "/api",
+  baseURL: "http://localhost:8082/api",
 });
 
 // Set default JSON content type only for non-FormData requests

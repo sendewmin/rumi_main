@@ -1,5 +1,6 @@
 import React, { useState, useEffect, memo, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Wifi, Snowflake, Cloud, Lock, Sofa, Leaf, Eye, Coffee, Dumbbell, Waves, Zap, UtensilsCrossed, Armchair, Music, MapPin, Share2, ArrowLeft } from 'lucide-react';
 
 import RoomCard from './RoomCard';
 import axiosClient from '../api/rumi_client';
@@ -15,21 +16,21 @@ const RatingDisplay = lazy(() => import('./rating_system/component/ratingDisplay
 
 /* ── Amenity icon map ── */
 const amenityIcons = {
-  'WiFi':           '📶',
-  'Air Conditioning':'❄️',
-  'Hot Water':      '🚿',
-  'Parking':        '🚗',
-  'Security':       '🔒',
-  'Furnished':      '🛋️',
-  'Garden':         '🌿',
-  'Balcony':        '🏠',
-  'Sea View':       '🌊',
-  'Gym':            '💪',
-  'Pool':           '🏊',
-  'Generator':      '⚡',
-  'Shared Kitchen': '🍳',
-  'Common Area':    '🪑',
-  'Quiet':          '🎵',
+  'WiFi':           <Wifi size={16} />,
+  'Air Conditioning': <Snowflake size={16} />,
+  'Hot Water':      <Cloud size={16} />,
+  'Parking':        <Lock size={16} />,
+  'Security':       <Lock size={16} />,
+  'Furnished':      <Sofa size={16} />,
+  'Garden':         <Leaf size={16} />,
+  'Balcony':        <Eye size={16} />,
+  'Sea View':       <Waves size={16} />,
+  'Gym':            <Dumbbell size={16} />,
+  'Pool':           <Waves size={16} />,
+  'Generator':      <Zap size={16} />,
+  'Shared Kitchen': <UtensilsCrossed size={16} />,
+  'Common Area':    <Armchair size={16} />,
+  'Quiet':          <Music size={16} />,
 };
 
 /* ── Icon components ── */
@@ -449,7 +450,7 @@ const ListingPage = () => {
                   room.amenities.map(a => (
                     <div className="lst-amenity" key={a.amenityId || a.name}>
                       <span className="lst-amenity-icon" aria-hidden="true">
-                        {amenityIcons[a.name] || '✅'}
+                        {amenityIcons[a.name] || <Lock size={16} />}
                       </span>
                       <span className="lst-amenity-label">{a.name}</span>
                     </div>

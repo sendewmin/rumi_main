@@ -2,11 +2,9 @@ package com.rumi.rumi_backend_v2.controller;
 
 
 import com.rumi.rumi_backend_v2.dto.RoomImageDto;
-import com.rumi.rumi_backend_v2.repo.RoomRepo;
 import com.rumi.rumi_backend_v2.service.RoomImageService;
 import com.rumi.rumi_backend_v2.util.SupabaseAuthService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

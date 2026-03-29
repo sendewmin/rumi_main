@@ -6,6 +6,7 @@
 CREATE TABLE IF NOT EXISTS public.rooms (
   id BIGSERIAL PRIMARY KEY,
   roomId BIGINT NOT NULL UNIQUE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   roomTitle TEXT NOT NULL,
   roomDescription TEXT,
   roomStatus TEXT DEFAULT 'AVAILABLE',

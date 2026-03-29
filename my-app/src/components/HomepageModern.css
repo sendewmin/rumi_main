@@ -1286,6 +1286,28 @@
   transition: background 0.15s;
 }
 
+.hp-admin-btn {
+  width: 100%;
+  padding: 12px 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-bottom: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #3182ce;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s;
+}
+
+.hp-admin-btn:hover {
+  background: #ebf8ff;
+}
+
 .hp-signout-btn:hover {
   background: #fff5f5;
 }

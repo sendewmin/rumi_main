@@ -46,7 +46,7 @@ public class User {
     // Role field using enum - PostgreSQL native enum type
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name = "role", nullable = false)
+    @Column(name = "role", nullable = true)
     // here we store only the enum value (ADMIN, RENTER, RENTEE)
     private RoleName role;
 
@@ -54,7 +54,7 @@ public class User {
     @Setter
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name="status", nullable = false)
+    @Column(name="status", nullable = true)
     // here we store only the enum value (ACTIVE, INACTIVE, SUSPENDED, DELETED)
     private UserStatus status;
 

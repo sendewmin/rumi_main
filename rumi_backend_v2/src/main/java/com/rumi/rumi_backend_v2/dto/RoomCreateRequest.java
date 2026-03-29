@@ -4,7 +4,6 @@ import com.rumi.rumi_backend_v2.enums.GenderAllowed;
 import com.rumi.rumi_backend_v2.enums.RoomStatus;
 import com.rumi.rumi_backend_v2.enums.RoomType;
 import com.rumi.rumi_backend_v2.enums.BillingCycle;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

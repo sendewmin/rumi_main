@@ -2,10 +2,10 @@ package com.rumi.rumi_backend_v2.service.impl;
 
 import com.rumi.rumi_backend_v2.dto.RoomCreateRequest;
 import com.rumi.rumi_backend_v2.dto.RoomDetailResponse;
-import com.rumi.rumi_backend_v2.dto.RoomUpdateRequest;
 import com.rumi.rumi_backend_v2.entity.*;
 import com.rumi.rumi_backend_v2.enums.RoleName;
 import com.rumi.rumi_backend_v2.enums.RoomStatus;
+import com.rumi.rumi_backend_v2.enums.ApprovalStatus;
 import com.rumi.rumi_backend_v2.enums.UserStatus;
 import com.rumi.rumi_backend_v2.repo.*;
 import com.rumi.rumi_backend_v2.service.RoomService;
@@ -67,6 +67,7 @@ public class RoomServiceImpl implements RoomService {
         room.setMaxRoommates(dto.getMaxRoommates() > 0 ? dto.getMaxRoommates() : 1);
         room.setRoomStatus(dto.getRoomStatus() != null ? dto.getRoomStatus() : RoomStatus.AVAILABLE);
         room.setRoomType(dto.getRoomType());
+        room.setApprovalStatus(ApprovalStatus.PENDING);
         room = roomRepo.save(room);
         
         // Address - handle null case
@@ -150,6 +151,8 @@ public class RoomServiceImpl implements RoomService {
                             .advance(price.getAdvance())
                             .billingCycle(price.getBillingCycle())
                             .build())
+                    .approvalStatus(room.getApprovalStatus())
+                    .rejectionReason(room.getRejectionReason())
                     .imageUrls(imageUrls)
                     .build());
         }
@@ -199,6 +202,8 @@ public class RoomServiceImpl implements RoomService {
                 .maxRoommates(room.getMaxRoommates())
                 .roomStatus(room.getRoomStatus())
                 .roomType(room.getRoomType())
+                .approvalStatus(room.getApprovalStatus())
+                .rejectionReason(room.getRejectionReason())
                 .address(address == null ? null : RoomDetailResponse.AddressDto.builder()
                         .houseNumber(address.getHouseNumber())
                         .addressLine(address.getAddressLine())

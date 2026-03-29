@@ -1,4 +1,4 @@
-import supabase from "../../../api/supabaseClient"
+import axiosClient from "../../../api/rumi_client"
 
 /**
  * Check if user has already rated this room
@@ -8,19 +8,8 @@ import supabase from "../../../api/supabaseClient"
  */
 export async function hasUserRated(userId, roomId) {
   try {
-    const { data, error } = await supabase
-      .from("ratings")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("room_id", roomId)
-      .limit(1)
-
-    if (error) {
-      console.error("Error checking existing rating:", error)
-      return false
-    }
-
-    return data && data.length > 0
+    const response = await axiosClient.get(`/ratings/check/${userId}/${roomId}`)
+    return response.data.exists || false
   } catch (error) {
     console.error("Unexpected error checking rating:", error)
     return false
@@ -45,27 +34,17 @@ export async function submitRating(userId, roomId, stars, tags = [], comment = "
       return { error: "You have already rated this room" }
     }
 
-    const { data, error } = await supabase
-      .from("ratings")
-      .insert([
-        {
-          user_id: userId,
-          room_id: roomId,
-          stars: stars,
-          tags: tags.length > 0 ? JSON.stringify(tags) : null,
-          comment: comment || null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ])
-      .select()
+    const response = await axiosClient.post("/ratings", {
+      user_id: userId,
+      room_id: roomId,
+      stars: stars,
+      tags: tags.length > 0 ? JSON.stringify(tags) : null,
+      comment: comment || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
 
-    if (error) {
-      console.error("Rating submission error:", error)
-      return { error: error.message }
-    }
-
-    return { data }
+    return { data: response.data }
   } catch (error) {
     console.error("Unexpected error submitting rating:", error)
     return { error: error.message }
@@ -79,18 +58,8 @@ export async function submitRating(userId, roomId, stars, tags = [], comment = "
  */
 export async function getRoomRatings(roomId) {
   try {
-    const { data, error } = await supabase
-      .from("ratings")
-      .select("*")
-      .eq("room_id", roomId)
-      .order("created_at", { ascending: false })
-
-    if (error) {
-      console.error("Error fetching room ratings:", error)
-      return null
-    }
-
-    return data
+    const response = await axiosClient.get(`/ratings/room/${roomId}`)
+    return response.data || []
   } catch (error) {
     console.error("Unexpected error fetching ratings:", error)
     return null
@@ -104,30 +73,8 @@ export async function getRoomRatings(roomId) {
  */
 export async function getRoomRatingStats(roomId) {
   try {
-    const { data, error } = await supabase
-      .from("ratings")
-      .select("stars")
-      .eq("room_id", roomId)
-
-    if (error) {
-      console.error("Error fetching rating stats:", error)
-      return null
-    }
-
-    if (data.length === 0) {
-      return { average: 0, total: 0, distribution: {} }
-    }
-
-    const average = (data.reduce((sum, r) => sum + r.stars, 0) / data.length).toFixed(1)
-    const distribution = {
-      1: data.filter((r) => r.stars === 1).length,
-      2: data.filter((r) => r.stars === 2).length,
-      3: data.filter((r) => r.stars === 3).length,
-      4: data.filter((r) => r.stars === 4).length,
-      5: data.filter((r) => r.stars === 5).length,
-    }
-
-    return { average, total: data.length, distribution }
+    const response = await axiosClient.get(`/ratings/room/${roomId}/stats`)
+    return response.data || { average: 0, total: 0, distribution: {} }
   } catch (error) {
     console.error("Unexpected error fetching rating stats:", error)
     return null
@@ -141,18 +88,8 @@ export async function getRoomRatingStats(roomId) {
  */
 export async function getRoomReviews(roomId) {
   try {
-    const { data, error } = await supabase
-      .from("ratings")
-      .select("*")
-      .eq("room_id", roomId)
-      .order("created_at", { ascending: false })
-
-    if (error) {
-      console.error("Error fetching room reviews:", error)
-      return []
-    }
-
-    return data || []
+    const response = await axiosClient.get(`/ratings/room/${roomId}/reviews`)
+    return response.data || []
   } catch (error) {
     console.error("Unexpected error fetching reviews:", error)
     return []

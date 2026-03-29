@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Home,
   Star,
@@ -135,6 +135,7 @@ const SearchField = ({ icon: Icon, label, options, value, onChange, isOpen, onTo
 
 export default function Homepage() {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [mobileOpen,  setMobileOpen]  = useState(false);
   const [signupOpen,  setSignupOpen]  = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -250,7 +251,7 @@ export default function Homepage() {
                             {profile?.first_name} {profile?.last_name}
                           </p>
                           <p className="hp-profile-role">
-                            {profile?.role === "Landlord" ? "🏢 Landlord" : "🧑 Tenant"}
+                          {profile?.role === "Landlord" ? "Landlord" : "Tenant"}
                           </p>
                         </div>
                       </div>
@@ -267,8 +268,19 @@ export default function Homepage() {
                           </div>
                         ))}
                       </div>
+                      {profile?.role === "ADMIN" && (
+                        <button
+                          className="hp-admin-btn"
+                          onClick={() => {
+                            navigate("/admin");
+                            setProfileOpen(false);
+                          }}
+                        >
+                          <LayoutDashboard size={16} /> Admin Dashboard
+                        </button>
+                      )}
                       <button className="hp-signout-btn" onClick={handleSignOut}>
-                        ⎋ Sign Out
+                        Sign Out
                       </button>
                     </div>
                   )}

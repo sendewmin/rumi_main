@@ -1,7 +1,6 @@
 package com.rumi.rumi_backend_v2.entity;
 
 
-import com.rumi.rumi_backend_v2.enums.Gender;
 import com.rumi.rumi_backend_v2.enums.RoomBookingRequestStatus;
 import jakarta.persistence.*;
 import lombok.*;
