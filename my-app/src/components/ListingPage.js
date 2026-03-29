@@ -168,59 +168,51 @@ const ListingPage = () => {
         
         console.log('Fetching room - URL id:', id, 'parsed roomId:', roomId);
 
-        // Query Supabase for the room
-        const { data: roomsData, error: queryError } = await supabase
-          .from('rooms')
-          .select('*')
-          .eq('roomid', roomId);
-
-        if (queryError || !roomsData || roomsData.length === 0) {
-          console.error('Room not found:', { roomId, queryError });
+        // Fetch room from backend API
+        const { data: apiResponse } = await axiosClient.get(`/api/rooms/${roomId}`);
+        
+        if (!apiResponse) {
+          console.error('Room not found:', { roomId });
           setError('Room not found');
           setLoading(false);
           return;
         }
 
-        const rawRoomData = roomsData[0];
-        const roomData = normalizeRoomData(rawRoomData);
-        setRoom(roomData);
-        console.log('✓ Fetched room:', roomData);
-
-        // Fetch images from Supabase Storage
-        // Use the actual roomid from the database, not the URL param
-        const actualRoomId = rawRoomData.roomid || roomId;
-        console.log('🖼️ Fetching images for roomId:', actualRoomId);
+        // Backend returns data in proper format
+        const roomData = {
+          ...apiResponse,
+          roomid: apiResponse.roomId,
+          roomTitle: apiResponse.roomTitle,
+          roomDescription: apiResponse.roomDescription,
+          roomStatus: apiResponse.roomStatus,
+          amount: apiResponse.amount,
+          maxRoommates: apiResponse.maxRoommates,
+          roomType: apiResponse.roomType,
+          allergies: apiResponse.allergies || [],
+          amenities: apiResponse.amenities || [],
+          address: {
+            addressLine: apiResponse.addressLine || '',
+            city: apiResponse.city || '',
+            country: apiResponse.country || ''
+          },
+          renter: apiResponse.renter || {
+            full_name: apiResponse.renterName || 'Landlord',
+            profileImage: ''
+          },
+          avgRating: apiResponse.avgRating || 0,
+          totalReviews: apiResponse.totalReviews || 0
+        };
         
-        try {
-          const { data: storageFiles, error: storageError } = await supabase.storage
-            .from('RoomImages')
-            .list(String(actualRoomId), {
-              limit: 100,
-              offset: 0,
-              sortBy: { column: 'name', order: 'asc' }
-            });
+        setRoom(roomData);
+        console.log('✓ Fetched room from API:', roomData);
 
-          console.log('Storage response:', { storageError, fileCount: storageFiles?.length });
-
-          if (!storageError && storageFiles && storageFiles.length > 0) {
-            const fileUrls = storageFiles.map(file => {
-              const { data: urlData } = supabase.storage
-                .from('RoomImages')
-                .getPublicUrl(`${actualRoomId}/${file.name}`);
-              console.log('Image URL:', urlData?.publicUrl);
-              return urlData?.publicUrl;
-            }).filter(url => url);
-
-            console.log('✓ Found', fileUrls.length, 'images');
-            setImages(fileUrls.length > 0 ? fileUrls : ['https://via.placeholder.com/800x600?text=Room+Image']);
-          } else {
-            console.warn('No images found in storage');
-            setImages(['https://via.placeholder.com/800x600?text=Room+Image']);
-          }
-        } catch (imgErr) {
-          console.warn('Could not fetch images:', imgErr);
-          setImages(['https://via.placeholder.com/800x600?text=Room+Image']);
-        }
+        // Set images from backend response
+        const roomImages = apiResponse.imageUrls && apiResponse.imageUrls.length > 0 
+          ? apiResponse.imageUrls 
+          : ['https://via.placeholder.com/800x600?text=Room+Image'];
+        
+        console.log('✓ Found', roomImages.length, 'images');
+        setImages(roomImages);
 
         // Check if already booked
         if (user) {
@@ -238,7 +230,7 @@ const ListingPage = () => {
         setError(null);
       } catch (err) {
         console.error('Error fetching room:', err);
-        setError(`Error: ${err.message}`);
+        setError(`Room not found or no longer available`);
       } finally {
         setLoading(false);
       }
@@ -411,6 +403,9 @@ const ListingPage = () => {
             <div className="lst-title-section">
               <div className="lst-title-row">
                 <h1 className="lst-title">{room.roomTitle}</h1>
+                {room.verificationStatus === 'APPROVED' && (
+                  <span className="lst-verification-badge">✓ Verified</span>
+                )}
                 <span className={`lst-avail-badge ${room.roomStatus === 'AVAILABLE' ? 'avail' : 'unavail'}`}>
                   {room.roomStatus === 'AVAILABLE' ? '● Available' : `● ${room.roomStatus}`}
                 </span>

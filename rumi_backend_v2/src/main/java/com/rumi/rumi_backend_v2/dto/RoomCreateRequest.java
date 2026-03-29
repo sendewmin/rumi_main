@@ -30,6 +30,8 @@ public class RoomCreateRequest {
     private List<Long> amenityIds;
     private List<Long> ruleIds;
     private List<Long> paymentConditionIds;
+    @Builder.Default
+    private boolean requestVerification = false;
 
     @Data
     @Builder

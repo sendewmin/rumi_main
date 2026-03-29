@@ -279,6 +279,39 @@
   color: #a16207;
 }
 
+/* Approval status badges */
+.ld-approval-badge-pending {
+  background: #fef09e;
+  color: #a16207;
+}
+
+.ld-approval-badge-approved {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.ld-approval-badge-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.ld-badge-verified {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.ld-badge-pending-verification {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.ld-status-badges {
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
 /* Listing footer */
 .ld-listing-footer {
   display: flex;

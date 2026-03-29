@@ -6,6 +6,7 @@ import com.rumi.rumi_backend_v2.entity.*;
 import com.rumi.rumi_backend_v2.enums.RoleName;
 import com.rumi.rumi_backend_v2.enums.RoomStatus;
 import com.rumi.rumi_backend_v2.enums.ApprovalStatus;
+import com.rumi.rumi_backend_v2.enums.VerificationStatus;
 import com.rumi.rumi_backend_v2.enums.UserStatus;
 import com.rumi.rumi_backend_v2.repo.*;
 import com.rumi.rumi_backend_v2.service.RoomService;
@@ -54,8 +55,8 @@ public class RoomServiceImpl implements RoomService {
             return userRepo.save(newUser);
         });
         
-        if (user.getRole() != RoleName.RENTER) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only renters can create rooms");
+        if (user.getRole() == RoleName.ADMIN) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admins cannot create rooms");
         }
         
         // Build RoomDetail
@@ -68,6 +69,7 @@ public class RoomServiceImpl implements RoomService {
         room.setRoomStatus(dto.getRoomStatus() != null ? dto.getRoomStatus() : RoomStatus.AVAILABLE);
         room.setRoomType(dto.getRoomType());
         room.setApprovalStatus(ApprovalStatus.PENDING);
+        room.setVerificationStatus(dto.isRequestVerification() ? VerificationStatus.PENDING : VerificationStatus.NOT_REQUESTED);
         room = roomRepo.save(room);
         
         // Address - handle null case
@@ -153,6 +155,8 @@ public class RoomServiceImpl implements RoomService {
                             .build())
                     .approvalStatus(room.getApprovalStatus())
                     .rejectionReason(room.getRejectionReason())
+                    .verificationStatus(room.getVerificationStatus())
+                    .verificationNotes(room.getVerificationNotes())
                     .imageUrls(imageUrls)
                     .build());
         }

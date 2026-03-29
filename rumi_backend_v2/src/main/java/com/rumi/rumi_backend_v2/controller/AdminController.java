@@ -3,6 +3,7 @@ package com.rumi.rumi_backend_v2.controller;
 import com.rumi.rumi_backend_v2.dto.RoomDetailResponse;
 import com.rumi.rumi_backend_v2.entity.RoomDetail;
 import com.rumi.rumi_backend_v2.enums.ApprovalStatus;
+import com.rumi.rumi_backend_v2.enums.VerificationStatus;
 import com.rumi.rumi_backend_v2.service.AdminService;
 import com.rumi.rumi_backend_v2.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -198,6 +199,87 @@ public class AdminController {
             log.error("Failed to setup admin user: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Failed to setup admin user: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Direct admin setup endpoint (for development/initial setup when Supabase is not reachable)
+     */
+    @PostMapping("/setup/create-admin-direct")
+    public ResponseEntity<?> createAdminDirectly(
+            @RequestBody Map<String, String> request) {
+        try {
+            String userId = request.get("userId");
+            String email = request.get("email");
+            String fullName = request.getOrDefault("fullName", "Admin");
+            
+            if (userId == null || userId.isBlank() || email == null || email.isBlank()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "userId and email are required"));
+            }
+            
+            log.info("Creating admin user directly: {} ({})", userId, email);
+            userService.createAdminUserDirect(userId, email, fullName);
+            return ResponseEntity.ok(Map.of("message", "Admin user created successfully"));
+        } catch (Exception e) {
+            log.error("Failed to create admin user directly: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to create admin user: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get all rooms requesting verification
+     */
+    @GetMapping("/rooms/verification-pending")
+    public ResponseEntity<?> getRoomsAwaitingVerification(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestHeader(value = "Authorization") String authHeader) {
+        try {
+            log.info("Fetching rooms awaiting verification - page: {}, size: {}", page, size);
+            Page<RoomDetailResponse> rooms = adminService.getRoomsAwaitingVerification(page, size, authHeader);
+            return ResponseEntity.ok(rooms);
+        } catch (Exception e) {
+            log.error("Failed to fetch rooms awaiting verification: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to fetch rooms"));
+        }
+    }
+
+    /**
+     * Approve room verification
+     */
+    @PutMapping("/rooms/{roomId}/verify")
+    public ResponseEntity<?> approveVerification(
+            @PathVariable Long roomId,
+            @RequestHeader(value = "Authorization") String authHeader) {
+        try {
+            log.info("Approving verification for room ID: {}", roomId);
+            adminService.approveVerification(roomId, authHeader);
+            return ResponseEntity.ok(Map.of("message", "Room verified successfully", "roomId", roomId));
+        } catch (Exception e) {
+            log.error("Failed to verify room {}: {}", roomId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to verify room"));
+        }
+    }
+
+    /**
+     * Reject room verification
+     */
+    @PutMapping("/rooms/{roomId}/verify-reject")
+    public ResponseEntity<?> rejectVerification(
+            @PathVariable Long roomId,
+            @RequestHeader(value = "Authorization") String authHeader) {
+        try {
+            log.info("Rejecting verification for room ID: {}", roomId);
+            adminService.rejectVerification(roomId, authHeader);
+            return ResponseEntity.ok(Map.of("message", "Verification rejected", "roomId", roomId));
+        } catch (Exception e) {
+            log.error("Failed to reject verification for room {}: {}", roomId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to reject verification"));
         }
     }
 }

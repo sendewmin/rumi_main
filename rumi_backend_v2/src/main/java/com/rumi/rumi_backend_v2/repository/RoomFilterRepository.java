@@ -20,7 +20,8 @@ public interface RoomFilterRepository extends JpaRepository<RoomDetail, Long> {
         FROM room_detail rd
         JOIN address a ON a.room_id = rd.room_id
         JOIN room_price rp ON rp.room_id = rd.room_id
-        WHERE (:city IS NULL OR LOWER(a.city) = LOWER(:city))
+        WHERE rd.approval_status = 'APPROVED'
+        AND (:city IS NULL OR LOWER(a.city) = LOWER(:city))
         AND (:country IS NULL OR LOWER(a.country) = LOWER(:country))
         AND (:minPrice IS NULL OR rp.amount >= :minPrice)
         AND (:maxPrice IS NULL OR rp.amount <= :maxPrice)
@@ -33,7 +34,8 @@ public interface RoomFilterRepository extends JpaRepository<RoomDetail, Long> {
         FROM room_detail rd
         JOIN address a ON a.room_id = rd.room_id
         JOIN room_price rp ON rp.room_id = rd.room_id
-        WHERE (:city IS NULL OR LOWER(a.city) = LOWER(:city))
+        WHERE rd.approval_status = 'APPROVED'
+        AND (:city IS NULL OR LOWER(a.city) = LOWER(:city))
         AND (:country IS NULL OR LOWER(a.country) = LOWER(:country))
         AND (:minPrice IS NULL OR rp.amount >= :minPrice)
         AND (:maxPrice IS NULL OR rp.amount <= :maxPrice)

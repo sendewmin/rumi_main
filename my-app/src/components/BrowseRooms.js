@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Home, Heart, MapPin, DollarSign, ArrowUpDown, X, Search } from 'lucide-react';
 import RoomCard from './RoomCard';
 import supabase from '../api/supabaseClient';
+import axiosClient from '../api/rumi_client';
 import { useAuth } from '../auth/AuthContext';
 import { getUserWishlists } from '../api/wishlistService';
 import Footer from './Footer';
@@ -132,78 +133,84 @@ export default function BrowseRooms() {
     try {
       const { min, max } = BUDGETS[budgetIdx];
       
-      // Build Supabase query
-      let query = supabase
-        .from('rooms')
-        .select('*')
-        .eq('roomstatus', 'AVAILABLE');
+      // Build API parameters for backend
+      const params = new URLSearchParams();
       
-      // Apply city filter
       if (city !== 'All Cities') {
-        query = query.eq('city', city);
+        params.append('city', city);
       }
       
-      // Apply price filter
+      if (type !== 'All Types') {
+        params.append('roomType', type.toUpperCase());
+      }
+      
       if (min > 0) {
-        query = query.gte('amount', min);
+        params.append('minPrice', min);
       }
       if (max !== Infinity) {
-        query = query.lte('amount', max);
+        params.append('maxPrice', max);
       }
       
-      const { data, error: fetchError } = await query;
+      params.append('roomStatus', 'AVAILABLE');
+      params.append('page', 0);
+      params.append('size', 50);
       
-      if (fetchError) throw fetchError;
+      // Fetch from backend API
+      const { data: response } = await axiosClient.get(`/api/rooms/search?${params.toString()}`);
       
-      // Fetch images for each room in parallel
-      const roomsWithImages = await Promise.all((data || []).map(async (room) => {
-        let images = ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688']; // Fallback
-        
-        try {
-          const { data: storageFiles, error: storageError } = await supabase.storage
-            .from('RoomImages')
-            .list(String(room.roomid), { limit: 10 });
+      // Get rooms from paginated response
+      const apiRooms = response.content || [];
+      
+      // Transform API response to RoomCard format and fetch images
+      const transformedRooms = await Promise.all(
+        apiRooms.map(async (room) => {
+          let images = ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688'];
+          
+          try {
+            const { data: storageFiles } = await supabase.storage
+              .from('RoomImages')
+              .list(String(room.roomId), { limit: 10 });
 
-          if (!storageError && storageFiles && storageFiles.length > 0) {
-            const fileUrls = storageFiles
-              .filter(f => f.name.length > 0)
-              .map(file => {
-                const { data: urlData } = supabase.storage
-                  .from('RoomImages')
-                  .getPublicUrl(`${room.roomid}/${file.name}`);
-                return urlData?.publicUrl;
-              })
-              .filter(url => url);
-            
-            if (fileUrls.length > 0) {
-              images = fileUrls;
-              console.log(`✓ Loaded ${fileUrls.length} images for room ${room.roomid}`);
+            if (storageFiles && storageFiles.length > 0) {
+              const fileUrls = storageFiles
+                .filter(f => f.name.length > 0)
+                .map(file => {
+                  const { data: urlData } = supabase.storage
+                    .from('RoomImages')
+                    .getPublicUrl(`${room.roomId}/${file.name}`);
+                  return urlData?.publicUrl;
+                })
+                .filter(url => url);
+              
+              if (fileUrls.length > 0) {
+                images = fileUrls;
+              }
             }
+          } catch (imgErr) {
+            console.warn(`Could not fetch images for room ${room.roomId}:`, imgErr);
           }
-        } catch (imgErr) {
-          console.warn(`Could not fetch images for room ${room.roomid}:`, imgErr);
-        }
 
-        return {
-          id: room.roomid,
-          title: room.roomtitle,
-          location: `${room.city}, ${room.country}`,
-          price: room.amount,
-          type: room.roomtype || 'Apartment',
-          images: images,
-          available: room.roomstatus === 'AVAILABLE',
-          rating: room.avgrating || 0,
-          reviews: room.totalreviews || 0,
-          bedrooms: room.bedrooms || room.maxroommates,
-          bathrooms: room.bathrooms || 1,
-          city: room.city
-        };
-      }));
+          return {
+            id: room.roomId,
+            title: room.roomTitle,
+            location: `${room.city}, ${room.country}`,
+            price: room.amount,
+            type: room.roomType || 'Apartment',
+            images: images,
+            available: room.roomStatus === 'AVAILABLE',
+            rating: 0,
+            reviews: 0,
+            bedrooms: 0,
+            bathrooms: 1,
+            city: room.city
+          };
+        })
+      );
       
-      setRooms(roomsWithImages);
+      setRooms(transformedRooms);
     } catch (err) {
-      setError("Could not load rooms. Please try again.");
-      console.error(err);
+      console.error('Error fetching rooms:', err);
+      setError('Failed to load rooms. Please try again.');
     } finally {
       setLoading(false);
     }

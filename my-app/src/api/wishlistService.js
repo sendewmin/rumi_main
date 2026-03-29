@@ -8,7 +8,7 @@ import axiosClient from "./rumi_client"
  */
 export async function addToWishlist(userId, roomId) {
   try {
-    const response = await axiosClient.post(`/wishlists`, {
+    const response = await axiosClient.post(`/api/wishlists`, {
       user_id: userId,
       room_id: roomId
     })
@@ -27,7 +27,7 @@ export async function addToWishlist(userId, roomId) {
  */
 export async function removeFromWishlist(userId, roomId) {
   try {
-    const response = await axiosClient.delete(`/wishlists/${userId}/${roomId}`)
+    const response = await axiosClient.delete(`/api/wishlists/${userId}/${roomId}`)
     return { data: response.data }
   } catch (error) {
     console.error("Error removing from wishlist:", error)
@@ -43,7 +43,7 @@ export async function removeFromWishlist(userId, roomId) {
  */
 export async function isInWishlist(userId, roomId) {
   try {
-    const response = await axiosClient.get(`/wishlists/${userId}/${roomId}/exists`)
+    const response = await axiosClient.get(`/api/wishlists/${userId}/${roomId}/exists`)
     return response.data.exists || false
   } catch (error) {
     console.error("Error checking wishlist:", error)
@@ -58,7 +58,7 @@ export async function isInWishlist(userId, roomId) {
  */
 export async function getUserWishlists(userId) {
   try {
-    const response = await axiosClient.get(`/wishlists/user/${userId}`)
+    const response = await axiosClient.get(`/api/wishlists/user/${userId}`)
     return response.data || []
   } catch (error) {
     console.error("Error fetching wishlists:", error)

@@ -4,6 +4,7 @@ import com.rumi.rumi_backend_v2.enums.GenderAllowed;
 import com.rumi.rumi_backend_v2.enums.RoomStatus;
 import com.rumi.rumi_backend_v2.enums.RoomType;
 import com.rumi.rumi_backend_v2.enums.ApprovalStatus;
+import com.rumi.rumi_backend_v2.enums.VerificationStatus;
 import com.rumi.rumi_backend_v2.enums.BillingCycle;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,6 +33,8 @@ public class RoomDetailResponse {
     private List<String> imageUrls;
     private ApprovalStatus approvalStatus;
     private String rejectionReason;
+    private VerificationStatus verificationStatus;
+    private String verificationNotes;
 
     @Data
     @Builder

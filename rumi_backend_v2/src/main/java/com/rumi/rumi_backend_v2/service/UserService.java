@@ -8,4 +8,5 @@ public interface UserService {
     void banUser(String userId, String authHeader);
     void unbanUser(String userId, String authHeader);
     void createOrUpdateAdminUser(String authHeader);
+    void createAdminUserDirect(String userId, String email, String fullName);
 }

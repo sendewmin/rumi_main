@@ -13,12 +13,13 @@ const getAuthHeaders = async () => {
 };
 
 const formatPrice = (listing) => {
-  if (!listing.amount) return 'Price N/A';
-  return `LKR ${parseInt(listing.amount).toLocaleString('en-LK')} / month`;
+  const amount = listing.price?.amount || listing.amount;
+  if (!amount) return 'Price N/A';
+  return `LKR ${parseInt(amount).toLocaleString('en-LK')} / month`;
 };
 
 const getFirstImage = (listing) =>
-  'https://via.placeholder.com/600x400?text=' + encodeURIComponent(listing.roomtitle || 'Room');
+  'https://via.placeholder.com/600x400?text=' + encodeURIComponent(listing.roomTitle || 'Room');
 
 /* ── Listing Card ── */
 const ListingCard = ({ listing, onDelete, onView, deleting }) => {
@@ -30,7 +31,7 @@ const ListingCard = ({ listing, onDelete, onView, deleting }) => {
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const roomId = listing.roomid;
+        const roomId = listing.roomId;
         console.log(`📷 ListingCard: Fetching images for room ${roomId}...`);
         
         const { data: storageFiles, error: storageError } = await supabase.storage
@@ -70,11 +71,13 @@ const ListingCard = ({ listing, onDelete, onView, deleting }) => {
     };
 
     fetchImages();
-  }, [listing.roomid]);
+  }, [listing.roomId]);
 
   const displayImages = images.length > 0 ? images : [getFirstImage(listing)];
   const imgSrc = displayImages[imgIdx];
-  const location = listing.city || listing.country ? `${listing.city || ''}${listing.country ? ', ' + listing.country : ''}` : 'Location N/A';
+  const location = listing.address 
+    ? `${listing.address.city || ''}${listing.address.country ? (listing.address.city ? ', ' : '') + listing.address.country : ''}`
+    : (listing.city || listing.country ? `${listing.city || ''}${listing.country ? ', ' + listing.country : ''}` : 'Location N/A');
 
   const prevImg = (e) => { e.stopPropagation(); setImgIdx(i => (i - 1 + displayImages.length) % displayImages.length); };
   const nextImg = (e) => { e.stopPropagation(); setImgIdx(i => (i + 1) % displayImages.length); };
@@ -104,17 +107,36 @@ const ListingCard = ({ listing, onDelete, onView, deleting }) => {
       <div className="ld-listing-body">
         <div className="ld-listing-top">
           <div>
-            <p className="ld-listing-title">{listing.roomtitle}</p>
+            <p className="ld-listing-title">{listing.roomTitle}</p>
             <p className="ld-listing-location">{location}</p>
           </div>
-          <span className={`ld-badge ${listing.roomstatus === 'AVAILABLE' ? 'ld-badge-active' : 'ld-badge-review'}`}>
-            {listing.roomstatus === 'AVAILABLE' ? 'Active' : listing.roomstatus || 'Pending'}
-          </span>
+          <div className="ld-status-badges">
+            <span className={`ld-badge ld-approval-badge-${(listing.approvalStatus || 'PENDING').toLowerCase()}`} title={listing.rejectionReason ? `Reason: ${listing.rejectionReason}` : ''}>
+              {listing.approvalStatus === 'PENDING' && 'Awaiting Approval ⏳'}
+              {listing.approvalStatus === 'APPROVED' && 'Approved ✓'}
+              {listing.approvalStatus === 'REJECTED' && 'Rejected ✕'}
+            </span>
+            {listing.roomStatus && (
+              <span className={`ld-badge ${listing.roomStatus === 'AVAILABLE' ? 'ld-badge-active' : 'ld-badge-review'}`}>
+                {listing.roomStatus === 'AVAILABLE' ? 'Active' : listing.roomStatus}
+              </span>
+            )}
+            {listing.verificationStatus === 'APPROVED' && (
+              <span className="ld-badge ld-badge-verified" title="This room is verified">
+                ✓ Verified
+              </span>
+            )}
+            {listing.verificationStatus === 'PENDING' && (
+              <span className="ld-badge ld-badge-pending-verification" title="Verification pending">
+                🔄 Verification Pending
+              </span>
+            )}
+          </div>
         </div>
         <div className="ld-listing-footer">
           <span className="ld-listing-price">{formatPrice(listing)}</span>
           <div className="ld-listing-meta">
-            <span className="ld-listing-type">{listing.roomtype || 'Room'}</span>
+            <span className="ld-listing-type">{listing.roomType || 'Room'}</span>
             {listing.maxRoommates > 0 && (
               <>
                 <span className="ld-dot">·</span>
@@ -123,10 +145,10 @@ const ListingCard = ({ listing, onDelete, onView, deleting }) => {
             )}
           </div>
           <div className="ld-listing-actions">
-            <button className="ld-view-btn" onClick={() => onView(listing.roomid)}>View</button>
+            <button className="ld-view-btn" onClick={() => onView(listing.roomId)}>View</button>
             <button
               className="ld-delete-btn"
-              onClick={() => onDelete(listing.roomid)}
+              onClick={() => onDelete(listing.roomId)}
               disabled={deleting}
             >
               {deleting ? '...' : 'Delete'}
@@ -167,6 +189,7 @@ const LandlordDashboard = () => {
     amount: '',
     advance: '',
     billingCycle: 'MONTHLY',
+    requestVerification: false,
   });
   const [images, setImages] = useState([]);
 
@@ -176,18 +199,9 @@ const LandlordDashboard = () => {
     try {
       setLoadingListings(true);
       setListingsError('');
-      // Fetch only the current landlord's rooms
-      const { data: rooms, error } = await supabase
-        .from('rooms')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error('Supabase fetch error:', error);
-        setListingsError('Could not load your listings.');
-        return;
-      }
+      // Fetch landlord's rooms from backend API (includes approval status)
+      const headers = await getAuthHeaders();
+      const { data: rooms } = await axiosClient.get('/api/rooms/my-listings', { headers });
       setListings(rooms || []);
     } catch (err) {
       console.error('Error fetching listings:', err);
@@ -206,17 +220,8 @@ const LandlordDashboard = () => {
     if (!window.confirm('Are you sure you want to delete this listing? This cannot be undone.')) return;
     try {
       setDeletingId(roomId);
-      // Delete from Supabase (use CAMELCASE column name)
-      const { error } = await supabase
-        .from('rooms')
-        .delete()
-        .eq('roomid', roomId);
-      
-      if (error) {
-        console.error('Delete error:', error);
-        alert('Failed to delete listing. Please try again.');
-        return;
-      }
+      const headers = await getAuthHeaders();
+      await axiosClient.delete(`/api/rooms/${roomId}`, { headers });
       setListings(prev => prev.filter(l => l.roomId !== roomId));
     } catch (err) {
       console.error('Error deleting listing:', err);
@@ -257,53 +262,37 @@ const LandlordDashboard = () => {
         return;
       }
 
-      // Generate a new roomId (using timestamp + random number)
-      const newRoomId = Math.floor(Date.now() / 1000) + Math.floor(Math.random() * 10000);
-      console.log('✓ Generated roomId:', newRoomId);
-
-      // Insert directly to Supabase (use CAMELCASE column names to match schema)
-      const roomData = {
-        roomid: newRoomId,
-        user_id: user.id,
-        roomtitle: formData.roomTitle,
-        roomdescription: formData.roomDescription,
-        roomstatus: formData.roomStatus,
-        amount: parseInt(formData.amount),
-        maxroommates: parseInt(formData.maxRoommates) || 1,
-        bedrooms: 1,
-        bathrooms: 1,
-        totalroomarea: 25,
-        roomtype: formData.roomType,
-        addressline: formData.addressLine || 'N/A',
-        city: formData.city,
-        country: formData.country,
-        amenities: [],
-        allergies: [],
-        rentername: user.email || 'Landlord',
-        renterimage: 'https://via.placeholder.com/80',
-        avgrating: 0,
-        totalreviews: 0,
+      // Create room via backend API (not directly in Supabase)
+      const headers = await getAuthHeaders();
+      const createRequest = {
+        roomTitle: formData.roomTitle,
+        roomDescription: formData.roomDescription,
+        roomStatus: formData.roomStatus,
+        roomType: formData.roomType,
+        genderAllowed: formData.genderAllowed,
+        maxRoommates: parseInt(formData.maxRoommates) || 1,
+        address: {
+          houseNumber: formData.houseNumber || 1,
+          addressLine: formData.addressLine || 'N/A',
+          city: formData.city,
+          country: formData.country,
+          mapUrl: null
+        },
+        price: {
+          amount: parseInt(formData.amount),
+          advance: parseInt(formData.advance) || 0,
+          billingCycle: formData.billingCycle || 'MONTHLY'
+        },
+        amenityIds: [],
+        ruleIds: [],
+        paymentConditionIds: [],
+        requestVerification: formData.requestVerification || false
       };
 
-      const { data: insertedRoom, error: insertError } = await supabase
-        .from('rooms')
-        .insert([roomData])
-        .select();
-
-      if (insertError) {
-        console.error('Supabase insert error:', insertError);
-        // If user_id column doesn't exist yet, show helpful message
-        if (insertError.message?.includes('user_id')) {
-          setMessage('Please refresh the page and try again');
-        } else {
-          setMessage(`Error: ${insertError.message}`);
-        }
-        return;
-      }
-
-      console.log('Room created successfully');
+      const { data: createResponse } = await axiosClient.post('/api/rooms', createRequest, { headers });
+      const roomId = createResponse.roomId;
+      console.log('✓ Room created successfully via backend API with ID:', roomId);
       
-      const roomId = newRoomId;
       setSuccessId(roomId);
       
       // Upload images to Supabase storage if any
@@ -336,16 +325,16 @@ const LandlordDashboard = () => {
           }
           
           if (uploadedCount > 0) {
-            setMessage(`✅ Room created! ID: ${roomId} with ${uploadedCount}/${images.length} images`);
+            setMessage(`✅ Room created! ID: ${roomId} with ${uploadedCount}/${images.length} images (PENDING approval)`);
           } else if (uploadedCount === 0 && images.length > 0) {
-            setMessage(`⚠️ Room created (ID: ${roomId}) but images failed to upload`);
+            setMessage(`⚠️ Room created (ID: ${roomId}) but images failed to upload (PENDING approval)`);
           }
         } catch (imgErr) {
           console.error('Image upload error:', imgErr);
-          setMessage(`✅ Room created! ID: ${roomId} (images: ${imgErr.message})`);
+          setMessage(`✅ Room created! ID: ${roomId} (images: ${imgErr.message}) (PENDING approval)`);
         }
       } else {
-        setMessage(`✅ Room created! ID: ${roomId}`);
+        setMessage(`✅ Room created! ID: ${roomId} (PENDING approval)`);
       }
 
       // Reset form
@@ -354,6 +343,7 @@ const LandlordDashboard = () => {
         maxRoommates: 1, roomStatus: 'AVAILABLE', roomType: 'STUDIO',
         houseNumber: '', addressLine: '', city: '', country: '',
         amount: '', advance: '', billingCycle: 'MONTHLY',
+        requestVerification: false,
       });
       setImages([]);
 
@@ -490,6 +480,18 @@ const LandlordDashboard = () => {
               </fieldset>
 
               <fieldset className="ld-fieldset">
+                <legend>Verification</legend>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input type="checkbox" name="requestVerification" checked={formData.requestVerification}
+                    onChange={(e) => setFormData({...formData, requestVerification: e.target.checked})} />
+                  <span>Request room verification badge</span>
+                </label>
+                <p style={{ fontSize: '12px', color: '#666', margin: '8px 0 0 0' }}>
+                  Get a verification badge to boost your listing's credibility with tenants
+                </p>
+              </fieldset>
+
+              <fieldset className="ld-fieldset">
                 <legend>Room Images</legend>
                 <input type="file" multiple accept="image/*" onChange={handleImageChange} />
                 {images.length > 0 && (
@@ -549,7 +551,7 @@ const LandlordDashboard = () => {
                 <div className="ld-listings-list">
                   {listings.map(l => (
                     <ListingCard
-                      key={l.roomid}
+                      key={l.roomId}
                       listing={l}
                       onDelete={handleDelete}
                       onView={(id) => navigate(`/listing/${id}`)}

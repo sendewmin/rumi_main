@@ -7,6 +7,7 @@ import com.rumi.rumi_backend_v2.enums.GenderAllowed;
 import com.rumi.rumi_backend_v2.enums.RoomStatus;
 
 import com.rumi.rumi_backend_v2.enums.RoomType;
+import com.rumi.rumi_backend_v2.enums.VerificationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -117,6 +118,18 @@ public class RoomDetail {
     @Getter
     @Column(name = "rejection_reason", columnDefinition = "TEXT", nullable = true)
     private String rejectionReason;
+
+    @Setter
+    @Getter
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "verification_status", nullable = true)
+    private VerificationStatus verificationStatus;
+
+    @Setter
+    @Getter
+    @Column(name = "verification_notes", columnDefinition = "TEXT", nullable = true)
+    private String verificationNotes;
 
     public void setRenter(User renter) {
         this.renter = renter;

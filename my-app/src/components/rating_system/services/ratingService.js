@@ -8,7 +8,7 @@ import axiosClient from "../../../api/rumi_client"
  */
 export async function hasUserRated(userId, roomId) {
   try {
-    const response = await axiosClient.get(`/ratings/check/${userId}/${roomId}`)
+    const response = await axiosClient.get(`/api/ratings/check/${userId}/${roomId}`)
     return response.data.exists || false
   } catch (error) {
     console.error("Unexpected error checking rating:", error)
@@ -34,7 +34,7 @@ export async function submitRating(userId, roomId, stars, tags = [], comment = "
       return { error: "You have already rated this room" }
     }
 
-    const response = await axiosClient.post("/ratings", {
+    const response = await axiosClient.post("/api/ratings", {
       user_id: userId,
       room_id: roomId,
       stars: stars,
@@ -58,7 +58,7 @@ export async function submitRating(userId, roomId, stars, tags = [], comment = "
  */
 export async function getRoomRatings(roomId) {
   try {
-    const response = await axiosClient.get(`/ratings/room/${roomId}`)
+    const response = await axiosClient.get(`/api/ratings/room/${roomId}`)
     return response.data || []
   } catch (error) {
     console.error("Unexpected error fetching ratings:", error)
@@ -73,7 +73,7 @@ export async function getRoomRatings(roomId) {
  */
 export async function getRoomRatingStats(roomId) {
   try {
-    const response = await axiosClient.get(`/ratings/room/${roomId}/stats`)
+    const response = await axiosClient.get(`/api/ratings/room/${roomId}/stats`)
     return response.data || { average: 0, total: 0, distribution: {} }
   } catch (error) {
     console.error("Unexpected error fetching rating stats:", error)
@@ -88,7 +88,7 @@ export async function getRoomRatingStats(roomId) {
  */
 export async function getRoomReviews(roomId) {
   try {
-    const response = await axiosClient.get(`/ratings/room/${roomId}/reviews`)
+    const response = await axiosClient.get(`/api/ratings/room/${roomId}/reviews`)
     return response.data || []
   } catch (error) {
     console.error("Unexpected error fetching reviews:", error)

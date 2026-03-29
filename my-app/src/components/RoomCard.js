@@ -115,6 +115,10 @@ const RoomCard = ({ room }) => {
 
         <span className="rc-type-badge">{room.type}</span>
 
+        {room.verificationStatus === 'APPROVED' && (
+          <span className="rc-verification-badge" title="Verified room">✓ Verified</span>
+        )}
+
         {!room.available && (
           <div className="rc-unavailable-overlay">
             <span className="rc-unavailable-badge">Unavailable</span>

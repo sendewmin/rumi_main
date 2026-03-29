@@ -118,4 +118,43 @@ public class UserServiceImpl implements UserService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to setup admin user: " + e.getMessage());
         }
     }
+
+    @Override
+    @Transactional
+    public void createAdminUserDirect(String userId, String email, String fullName) {
+        try {
+            log.info("Creating admin user directly: {} ({})", userId, email);
+            
+            // Generate a unique phone number based on userId hash
+            String uniquePhone = "9" + Math.abs(userId.hashCode() % 1000000000L);
+            
+            User user = userRepo.findById(userId).orElseGet(() -> {
+                // Create new user
+                return User.builder()
+                        .supabaseUid(userId)
+                        .email(email)
+                        .full_name(fullName != null ? fullName : "admin")
+                        .phone_number(uniquePhone)
+                        .role(RoleName.ADMIN)
+                        .status(UserStatus.ACTIVE)
+                        .profile_complete(true)
+                        .phone_verified(false)
+                        .build();
+            });
+            
+            // Update existing user to ensure admin role
+            user.setRole(RoleName.ADMIN);
+            user.setStatus(UserStatus.ACTIVE);
+            user.setEmail(email);
+            if (user.getPhone_number() == null || user.getPhone_number().isBlank()) {
+                user.setPhone_number(uniquePhone);
+            }
+            
+            userRepo.save(user);
+            log.info("Admin user {} created/updated successfully", userId);
+        } catch (Exception e) {
+            log.error("Error creating admin user directly: {}", e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create admin user: " + e.getMessage());
+        }
+    }
 }

@@ -10,4 +10,7 @@ public interface AdminService {
     void rejectListing(Long roomId, String reason, String authHeader);
     Page<RoomDetailResponse> getListingsWithStatus(int page, int size, String status, String authHeader);
     Map<String, Long> getApprovalStatistics(String authHeader);
+    Page<RoomDetailResponse> getRoomsAwaitingVerification(int page, int size, String authHeader);
+    void approveVerification(Long roomId, String authHeader);
+    void rejectVerification(Long roomId, String authHeader);
 }
